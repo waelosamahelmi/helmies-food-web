@@ -1,0 +1,8 @@
+# Handle API routes first (don't redirect these)
+/api/*  /.netlify/functions/:splat  200
+
+# Handle assets (don't redirect these)
+/assets/*  /assets/:splat  200
+
+# Handle all other routes with SPA fallback
+/*  /index.html  200
