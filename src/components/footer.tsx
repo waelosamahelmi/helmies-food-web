@@ -1,9 +1,14 @@
 import { useLanguage } from "@/lib/language-context";
+import { useRestaurant } from "@/lib/restaurant-context";
 import { UtensilsCrossed, Phone, Mail, MapPin } from "lucide-react";
+import * as LucideIcons from "lucide-react";
 import { Link } from "wouter";
 
 export function Footer() {
   const { t } = useLanguage();
+  const { config } = useRestaurant();
+  
+  const IconComponent = (LucideIcons as any)[config.logo.icon] || LucideIcons.UtensilsCrossed;
 
   return (
     <footer className="bg-gray-900 text-white py-12">
@@ -11,19 +16,21 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="md:col-span-2">
             <div className="flex items-center space-x-3 mb-4">
-              <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center">
-                <UtensilsCrossed className="text-white text-lg" />
+              <div 
+                className="w-10 h-10 rounded-full flex items-center justify-center"
+                style={{ backgroundColor: config.logo.backgroundColor }}
+              >
+                <IconComponent className="text-white text-lg" />
               </div>
               <div>
-                <h3 className="text-xl font-bold">Tirvan Kahvila</h3>
-                <p className="text-gray-400 text-sm">{t("Utti, Suomi", "Utti, Finland")}</p>
+                <h3 className="text-xl font-bold">{config.name}</h3>
+                <p className="text-gray-400 text-sm">
+                  {t(`${config.address.city}, Suomi`, `${config.address.city}, Finland`)}
+                </p>
               </div>
             </div>
             <p className="text-gray-400 mb-4">
-              {t(
-                "Palvelemme teitä rakkaudella ja intohimolla suomalaiseen ruokaan jo yli 20 vuoden ajan.",
-                "We serve you with love and passion for Finnish food for over 20 years."
-              )}
+              {t(config.about.story, config.about.storyEn)}
             </p>
           </div>
 
@@ -75,15 +82,15 @@ export function Footer() {
             <ul className="space-y-2 text-gray-400 text-sm">
               <li className="flex items-center space-x-2">
                 <Phone className="w-4 h-4" />
-                <span>+358 41 3152619</span>
+                <span>{config.phone}</span>
               </li>
               <li className="flex items-center space-x-2">
                 <Mail className="w-4 h-4" />
-                <span>info@tirvankahvila.fi</span>
+                <span>{config.email}</span>
               </li>
               <li className="flex items-center space-x-2">
                 <MapPin className="w-4 h-4" />
-                <span>Pasintie 2, 45410 Utti</span>
+                <span>{config.address.street}, {config.address.postalCode} {config.address.city}</span>
               </li>
             </ul>
           </div>
@@ -91,7 +98,7 @@ export function Footer() {
 
         <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
           <p>
-            &copy; 2024 Tirvan Kahvila.{" "}
+            &copy; 2024 {config.name}.{" "}
             {t("Kaikki oikeudet pidätetään.", "All rights reserved.")}
           </p>
         </div>

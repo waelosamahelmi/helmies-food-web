@@ -10,7 +10,7 @@ import { ItemDetailModal } from "@/components/item-detail-modal";
 import { CartModal } from "@/components/cart-modal";
 import { CheckoutModal } from "@/components/checkout-modal";
 import { RestaurantClosedModal } from "@/components/restaurant-closed-modal";
-import { Header } from "@/components/header";
+import { UniversalHeader } from "@/components/universal-header";
 import { MobileNav } from "@/components/mobile-nav";
 import { RestaurantStatusHeader } from "@/components/restaurant-status-header";
 import { 
@@ -167,7 +167,7 @@ export default function Menu() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Header onCartClick={handleCartOpen} />
+      <UniversalHeader onCartClick={handleCartOpen} />
       
       {/* Page Header */}
       <div className="bg-white dark:bg-gray-800 shadow-sm border-b">

@@ -1,256 +1,223 @@
-import { useLanguage } from "@/lib/language-context";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { 
-  MapPin, 
-  Phone, 
-  Clock, 
-  Facebook,
-  Mail,
-  Navigation,
-  Car,
-  Truck,
-  UtensilsCrossed
-} from "lucide-react";
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Textarea } from './ui/textarea';
+import { Phone, Mail, MapPin, Clock } from 'lucide-react';
+import { RESTAURANT_CONFIG, getFullAddress, getFormattedHours } from '../config/restaurant-config';
+import { useLanguage } from '../lib/language-context';
 
-export function ContactSection() {
-  const { t } = useLanguage();
+const ContactSection: React.FC = () => {
+  const { language } = useLanguage();
+  
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    // Handle form submission here
+    console.log('Contact form submitted');
+  };
+
+  const formattedHours = getFormattedHours(RESTAURANT_CONFIG.hours.general, language);
+  
+  // Group consecutive days with same hours
+  const groupedHours = formattedHours.reduce((acc: any[], curr, index) => {
+    if (curr.closed) {
+      acc.push({ days: [curr.day], hours: language === 'fi' ? 'Suljettu' : 'Closed' });
+      return acc;
+    }
+    
+    const timeStr = `${curr.open} - ${curr.close}`;
+    const lastGroup = acc[acc.length - 1];
+    
+    if (lastGroup && lastGroup.hours === timeStr) {
+      lastGroup.days.push(curr.day);
+    } else {
+      acc.push({ days: [curr.day], hours: timeStr });
+    }
+    
+    return acc;
+  }, []);
 
   return (
-    <section className="py-16 bg-white dark:bg-gray-800">
-      <div className="max-w-7xl mx-auto px-4">
-        {/* Contact Header */}
+    <section id="contact" className="py-16 bg-gray-50">
+      <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-6">
-            {t("Ota yhteyttä", "Get in Touch")}
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            {language === 'fi' ? 'Ota yhteyttä' : 'Contact Us'}
           </h2>
-          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-            {t(
-              "Olemme täällä auttamassa sinua. Ota yhteyttä tai tule käymään meillä Utissa.",
-              "We're here to help you. Get in touch or visit us in Utti."
-            )}
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            {language === 'fi' 
+              ? 'Ota meihin yhteyttä varausten, catering-palveluiden tai kysymysten osalta.'
+              : 'Get in touch with us for reservations, catering, or any questions you may have.'
+            }
           </p>
         </div>
 
-        {/* Contact Information Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-          {/* Contact Details */}
-          <Card className="h-fit">
-            <CardContent className="p-8">
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-                {t("Yhteystiedot", "Contact Information")}
-              </h3>
-              
-              <div className="space-y-6">
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center flex-shrink-0">
-                    <MapPin className="w-6 h-6 text-red-600" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 dark:text-white mb-1">
-                      {t("Osoite", "Address")}
-                    </h4>
-                    <p className="text-gray-600 dark:text-gray-300">
-                      Pasintie 2<br />
-                      45410 Utti, Finland
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* Contact Information */}
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Phone className="w-5 h-5" />
+                  {language === 'fi' ? 'Puhelin' : 'Phone'}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-lg">{RESTAURANT_CONFIG.phone}</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Mail className="w-5 h-5" />
+                  Email
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-lg">{RESTAURANT_CONFIG.email}</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MapPin className="w-5 h-5" />
+                  {language === 'fi' ? 'Osoite' : 'Address'}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-lg">
+                  {RESTAURANT_CONFIG.address.street}<br />
+                  {RESTAURANT_CONFIG.address.postalCode} {RESTAURANT_CONFIG.address.city}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="w-5 h-5" />
+                  {language === 'fi' ? 'Aukioloajat' : 'Hours'}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {groupedHours.map((group, index) => (
+                    <p key={index}>
+                      <span className="font-medium">
+                        {group.days.length === 1 
+                          ? group.days[0]
+                          : group.days.length === 2
+                          ? `${group.days[0]} - ${group.days[group.days.length - 1]}`
+                          : `${group.days[0]} - ${group.days[group.days.length - 1]}`
+                        }:
+                      </span>{' '}
+                      {group.hours}
                     </p>
-                  </div>
+                  ))}
                 </div>
+              </CardContent>
+            </Card>
+          </div>
 
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Phone className="w-6 h-6 text-blue-600" />
+          {/* Contact Form */}
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                {language === 'fi' ? 'Lähetä viesti' : 'Send us a Message'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
+                      {language === 'fi' ? 'Etunimi' : 'First Name'}
+                    </label>
+                    <Input
+                      id="firstName"
+                      name="firstName"
+                      type="text"
+                      required
+                      placeholder={language === 'fi' ? 'Etunimesi' : 'Your first name'}
+                    />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900 dark:text-white mb-1">
-                      {t("Puhelin", "Phone")}
-                    </h4>
-                    <a 
-                      href="tel:+358413152619" 
-                      className="text-blue-600 hover:underline text-lg font-medium"
-                    >
-                      +358 41 3152619
-                    </a>
+                    <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
+                      {language === 'fi' ? 'Sukunimi' : 'Last Name'}
+                    </label>
+                    <Input
+                      id="lastName"
+                      name="lastName"
+                      type="text"
+                      required
+                      placeholder={language === 'fi' ? 'Sukunimesi' : 'Your last name'}
+                    />
                   </div>
                 </div>
-
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/20 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Facebook className="w-6 h-6 text-purple-600" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 dark:text-white mb-1">
-                      {t("Facebook", "Facebook")}
-                    </h4>
-                    <a 
-                      href="https://fi-fi.facebook.com/ravintolatirva/" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-purple-600 hover:underline"
-                    >
-                      Facebook - Tirvan Kahvila
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Opening Hours */}
-          <Card className="h-fit">
-            <CardContent className="p-8">
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-                {t("Aukioloajat", "Opening Hours")}
-              </h3>
-              
-              <div className="space-y-6">
-                {/* Restaurant Hours */}
+                
                 <div>
-                  <div className="flex items-center space-x-3 mb-3">
-                    <Clock className="w-5 h-5 text-green-600" />
-                    <h4 className="font-semibold text-gray-900 dark:text-white">
-                      {t("Ravintola", "Restaurant")}
-                    </h4>
-                  </div>
-                  <div className="ml-8 space-y-1 text-gray-600 dark:text-gray-300">
-                    <div className="flex justify-between">
-                      <span>{t("Maanantai - Sunnuntai", "Monday - Sunday")}</span>
-                      <span className="font-medium">06:00 - 20:00</span>
-                    </div>
-                  </div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                    Email
+                  </label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    required
+                    placeholder={language === 'fi' ? 'sinun.email@esimerkki.com' : 'your.email@example.com'}
+                  />
                 </div>
-
-                {/* Pickup Service */}
+                
                 <div>
-                  <div className="flex items-center space-x-3 mb-3">
-                    <Car className="w-5 h-5 text-blue-600" />
-                    <h4 className="font-semibold text-gray-900 dark:text-white">
-                      {t("Noutopalvelu", "Pickup Service")}
-                    </h4>
-                  </div>
-                  <div className="ml-8 space-y-1 text-gray-600 dark:text-gray-300">
-                    <div className="flex justify-between">
-                      <span>{t("Maanantai - Perjantai", "Monday - Friday")}</span>
-                      <span className="font-medium">10:00 - 20:00</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>{t("Lauantai - Sunnuntai", "Saturday - Sunday")}</span>
-                      <span className="font-medium">10:00 - 20:00</span>
-                    </div>
-                  </div>
+                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+                    {language === 'fi' ? 'Puhelin (valinnainen)' : 'Phone (optional)'}
+                  </label>
+                  <Input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    placeholder={language === 'fi' ? '+358 40 123 4567' : '(555) 123-4567'}
+                  />
                 </div>
-
-                {/* Delivery Service */}
+                
                 <div>
-                  <div className="flex items-center space-x-3 mb-3">
-                    <Truck className="w-5 h-5 text-orange-600" />
-                    <h4 className="font-semibold text-gray-900 dark:text-white">
-                      {t("Toimituspalvelu", "Delivery Service")}
-                    </h4>
-                  </div>
-                  <div className="ml-8 space-y-1 text-gray-600 dark:text-gray-300">
-                    <div className="flex justify-between">
-                      <span>{t("Maanantai - Torstai", "Monday - Thursday")}</span>
-                      <span className="font-medium">10:00 - 19:30</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>{t("Perjantai - Sunnuntai", "Friday - Sunday")}</span>
-                      <span className="font-medium">10:00 - 19:30</span>
-                    </div>
-                  </div>
+                  <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-1">
+                    {language === 'fi' ? 'Aihe' : 'Subject'}
+                  </label>
+                  <Input
+                    id="subject"
+                    name="subject"
+                    type="text"
+                    required
+                    placeholder={language === 'fi' ? 'Mistä viesti koskee?' : 'What is this regarding?'}
+                  />
                 </div>
-
-                {/* Lunch Buffet */}
+                
                 <div>
-                  <div className="flex items-center space-x-3 mb-3">
-                    <UtensilsCrossed className="w-5 h-5 text-purple-600" />
-                    <h4 className="font-semibold text-gray-900 dark:text-white">
-                      {t("Lounasbuffet", "Lunch Buffet")}
-                    </h4>
-                  </div>
-                  <div className="ml-8 space-y-1 text-gray-600 dark:text-gray-300">
-                    <div className="flex justify-between">
-                      <span>{t("Arkisin", "Weekdays")}</span>
-                      <span className="font-medium">10:00 - 14:30</span>
-                    </div>
-                    <p className="text-sm text-purple-600 dark:text-purple-400">
-                      {t("Sisältää kahvin ja jälkiruoan", "Includes coffee and dessert")}
-                    </p>
-                  </div>
+                  <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
+                    {language === 'fi' ? 'Viesti' : 'Message'}
+                  </label>
+                  <Textarea
+                    id="message"
+                    name="message"
+                    required
+                    placeholder={language === 'fi' ? 'Kerro lisää...' : 'Tell us more about your inquiry...'}
+                    className="min-h-[120px]"
+                  />
                 </div>
-              </div>
+                
+                <Button type="submit" className="w-full">
+                  {language === 'fi' ? 'Lähetä viesti' : 'Send Message'}
+                </Button>
+              </form>
             </CardContent>
           </Card>
         </div>
-
-        {/* Delivery Information */}
-        <Card className="mb-12">
-          <CardContent className="p-8">
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-              {t("Toimitustiedot", "Delivery Information")}
-            </h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div>
-                <h4 className="font-semibold text-gray-900 dark:text-white mb-4">
-                  {t("Toimituskulut", "Delivery Fees")}
-                </h4>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                    <span>{t("Kuljetusalue 0 - 10km", "Delivery area 0 - 10km")}</span>
-                    <span className="font-bold text-green-600">3,00 €</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                    <span>{t("Kuljetusalue yli 10km", "Delivery area over 10km")}</span>
-                    <span className="font-bold text-orange-600">8,00 €</span>
-                  </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {t("* Yli 10km toimituksissa minimitilaus 20,00 €", "* For deliveries over 10km, minimum order €20.00")}
-                  </p>
-                </div>
-              </div>
-
-              <div>
-                <h4 className="font-semibold text-gray-900 dark:text-white mb-4">
-                  {t("Toimitusalueet", "Delivery Areas")}
-                </h4>
-                <p className="text-gray-600 dark:text-gray-300 mb-4">
-                  {t(
-                    "Toimitamme ruokaa Utin ja lähialueiden koteihin ja työpaikoille. Tarkista toimitusmahdollisuus soittamalla meille.",
-                    "We deliver food to homes and workplaces in Utti and surrounding areas. Check delivery availability by calling us."
-                  )}
-                </p>
-                <Button className="w-full md:w-auto">
-                  <Phone className="w-4 h-4 mr-2" />
-                  {t("Soita ja tilaa", "Call and Order")}
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Map Placeholder */}
-        <Card>
-          <CardContent className="p-8">
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-              {t("Sijainti", "Location")}
-            </h3>
-            
-            <div className="bg-gray-100 dark:bg-gray-700 rounded-lg h-64 flex items-center justify-center">
-              <div className="text-center">
-                <Navigation className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600 dark:text-gray-400">
-                  {t("Kartta tulossa pian", "Map coming soon")}
-                </p>
-                <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
-                  Pasintie 2, 45410 Utti
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </section>
   );
-}
+};
 
+export default ContactSection;

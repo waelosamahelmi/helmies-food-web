@@ -39,8 +39,8 @@ export default function Terms() {
             <CardContent className="prose dark:prose-invert max-w-none">
               <p>
                 {t(
-                  "Tirvan Kahvilan verkkopalvelu on tarkoitettu ruoan tilaamiseen ja ravintolan tietojen katseluun. Käyttämällä palvelua hyväksyt nämä käyttöehdot.",
-                  "Tirvan Kahvila's web service is intended for food ordering and viewing restaurant information. By using the service, you accept these terms of use."
+                  "Pizzeria Antonion verkkopalvelu on tarkoitettu ruoan tilaamiseen ja ravintolan tietojen katseluun. Käyttämällä palvelua hyväksyt nämä käyttöehdot.",
+                  "Pizzeria Antonio's web service is intended for food ordering and viewing restaurant information. By using the service, you accept these terms of use."
                 )}
               </p>
             </CardContent>
@@ -58,7 +58,7 @@ export default function Terms() {
                 )}
               </p>
               <ul>
-                <li>{t("Kotiinkuljetus: 3.50€", "Delivery: €3.50")}</li>
+                <li>{t("Kotiinkuljetus: 0-4 km ilmainen, 4-5 km 4€, 5-8 km 7€, 8-10 km 10€", "Delivery: 0-4 km free, 4-5 km €4, 5-8 km €7, 8-10 km €10")}</li>
                 <li>{t("Nouto: Ilmainen", "Pickup: Free")}</li>
                 <li>{t("Minimi tilaussumma kotiinkuljetukselle: 15€", "Minimum order for delivery: €15")}</li>
               </ul>
@@ -72,8 +72,8 @@ export default function Terms() {
             <CardContent className="prose dark:prose-invert max-w-none">
               <p>
                 {t(
-                  "Toimitusaika on arvio ja voi vaihdella ruuhka-aikoina. Toimitamme Utin ja lähialueiden alueella. Toimitusmaksut vaihtelevat etäisyyden mukaan.",
-                  "Delivery time is an estimate and may vary during peak hours. We deliver in the Utti and surrounding areas. Delivery fees vary by distance."
+                  "Toimitusaika on arvio ja voi vaihdella ruuhka-aikoina. Toimitamme Lahden ja lähialueiden alueella. Toimitusmaksut vaihtelevat etäisyyden mukaan.",
+                  "Delivery time is an estimate and may vary during peak hours. We deliver in the Lahti and surrounding areas. Delivery fees vary by distance."
                 )}
               </p>
             </CardContent>
@@ -100,8 +100,8 @@ export default function Terms() {
             <CardContent className="prose dark:prose-invert max-w-none">
               <p>
                 {t(
-                  "Tirvan Kahvila ei vastaa mahdollisista teknisistä ongelmista verkkopalvelussa. Reklamaatiot ruoasta tulee tehdä 24 tunnin sisällä toimituksesta.",
-                  "Tirvan Kahvila is not responsible for possible technical problems in the web service. Food complaints must be made within 24 hours of delivery."
+                  "Pizzeria Antonio ei vastaa mahdollisista teknisistä ongelmista verkkopalvelussa. Reklamaatiot ruoasta tulee tehdä 24 tunnin sisällä toimituksesta.",
+                  "Pizzeria Antonio is not responsible for possible technical problems in the web service. Food complaints must be made within 24 hours of delivery."
                 )}
               </p>
             </CardContent>
@@ -119,10 +119,10 @@ export default function Terms() {
                 )}
               </p>
               <p>
-                <strong>Tirvan Kahvila</strong><br />
-                Pasintie 2, 45410 Utti<br />
-                Puhelin: +358 41 3152619<br />
-                Sähköposti: info@tirvankahvila.fi
+                <strong>Pizzeria Antonio</strong><br />
+                Rauhankatu 19 c, 15110 Lahti<br />
+                Puhelin: +35835899089<br />
+                Sähköposti: info@pizzeriaantonio.fi
               </p>
             </CardContent>
           </Card>

@@ -179,10 +179,10 @@ export default function Privacy() {
               <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg mt-4">
                 <p>
                   <strong>Tietosuojavastaava / Data Protection Officer</strong><br />
-                  Tirvan Kahvila<br />
-                  Pasintie 2, 45410 Utti<br />
-                  Sähköposti: privacy@tirvankahvila.fi<br />
-                  Puhelin: +358 41 3152619
+                  Pizzeria Antonio<br />
+                  Rauhankatu 19 c, 15110 Lahti<br />
+                  Sähköposti: info@pizzeriaantonio.fi<br />
+                  Puhelin: +35835899089
                 </p>
               </div>
             </CardContent>

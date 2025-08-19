@@ -1,8 +1,10 @@
-// Restaurant location in Utti, Finland
+import { RESTAURANT_CONFIG } from "@/config/restaurant-config";
+
+// Restaurant location from config
 export const RESTAURANT_LOCATION = {
-  lat: 60.905728, // Exact restaurant coordinates
-  lng: 27.012103,
-  address: "Pasintie 2, 45410 Utti, Finland"
+  lat: RESTAURANT_CONFIG.delivery.location.lat,
+  lng: RESTAURANT_CONFIG.delivery.location.lng,
+  address: `${RESTAURANT_CONFIG.address.street}, ${RESTAURANT_CONFIG.address.postalCode} ${RESTAURANT_CONFIG.address.city}, ${RESTAURANT_CONFIG.address.country}`
 };
 
 // Calculate distance between two coordinates using Haversine formula
@@ -20,20 +22,33 @@ export function calculateDistance(lat1: number, lng1: number, lat2: number, lng2
 
 // Calculate delivery fee based on distance
 export function calculateDeliveryFee(distance: number): number {
-  if (!distance || isNaN(distance)) return 3.00; // Default fee for invalid distance
-  if (distance <= 10) return 3.00; // 0-10km delivery zone
-  return 8.00; // Over 10km delivery zone
+  if (!distance || isNaN(distance)) return RESTAURANT_CONFIG.delivery.zones[0].fee;
+  
+  for (const zone of RESTAURANT_CONFIG.delivery.zones) {
+    if (distance <= zone.maxDistance) {
+      return zone.fee;
+    }
+  }
+  
+  return -1; // Outside delivery area
 }
 
 // Get delivery zone description
 export function getDeliveryZone(distance: number): { zone: string; description: string } {
-  if (distance <= 10) return { 
-    zone: "standard", 
-    description: "Kuljetusalue 0-10km" 
-  };
-  return { 
-    zone: "extended", 
-    description: "Kuljetusalue yli 10km" 
+  for (let i = 0; i < RESTAURANT_CONFIG.delivery.zones.length; i++) {
+    const zone = RESTAURANT_CONFIG.delivery.zones[i];
+    if (distance <= zone.maxDistance) {
+      const prevMax = i > 0 ? RESTAURANT_CONFIG.delivery.zones[i-1].maxDistance : 0;
+      return {
+        zone: i === 0 ? "standard" : "extended",
+        description: `Kuljetusalue ${prevMax}-${zone.maxDistance}km`
+      };
+    }
+  }
+  
+  return {
+    zone: "outside",
+    description: "Toimitus-alueen ulkopuolella"
   };
 }
 

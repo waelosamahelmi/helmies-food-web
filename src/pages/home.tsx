@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { useLanguage } from "@/lib/language-context";
 import { useCart } from "@/lib/cart-context";
+import { useRestaurant } from "@/lib/restaurant-context";
 import { useCategories, useMenuItems } from "@/hooks/use-menu";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CartModal } from "@/components/cart-modal";
 import { CheckoutModal } from "@/components/checkout-modal";
-import { Header } from "@/components/header";
+import { UniversalHeader } from "@/components/universal-header";
 import { MobileNav } from "@/components/mobile-nav";
 import { HeroVideo } from "@/components/hero-video";
 import { RestaurantStatusHeader } from "@/components/restaurant-status-header";
@@ -28,6 +29,7 @@ import { Link } from "wouter";
 
 export default function Home() {
   const { t } = useLanguage();
+  const { config } = useRestaurant();
   const { data: categories } = useCategories();
   const { data: menuItems } = useMenuItems();
   
@@ -48,7 +50,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Header onCartClick={handleCartOpen} />
+      <UniversalHeader onCartClick={handleCartOpen} />
       <RestaurantStatusHeader />
       <HeroVideo />
 
@@ -56,14 +58,20 @@ export default function Home() {
       <section className="py-12 bg-white dark:bg-gray-800">
         <div className="max-w-7xl mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-8 text-gray-900 dark:text-white">
-            {t("Tirvan Kahvila tarjoaa", "Tirvan Kahvila offers")}
+            {t(`${config.name} tarjoaa`, `${config.nameEn} offers`)}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Link href="/menu">
               <Card className="cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-105">
                 <CardContent className="p-8 text-center">
-                  <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <UtensilsCrossed className="w-8 h-8 text-red-600" />
+                  <div 
+                    className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"
+                    style={{ 
+                      backgroundColor: `${config.theme.primary}20`,
+                      color: config.theme.primary 
+                    }}
+                  >
+                    <UtensilsCrossed className="w-8 h-8" />
                   </div>
                   <h3 className="text-xl font-semibold mb-3">
                     {t("Pizzat & Kebab", "Pizzas & Kebab")}
@@ -78,28 +86,42 @@ export default function Home() {
               </Card>
             </Link>
 
-            <Card className="cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-105">
-              <CardContent className="p-8 text-center">
-                <div className="w-16 h-16 bg-orange-100 dark:bg-orange-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Coffee className="w-8 h-8 text-orange-600" />
-                </div>
-                <h3 className="text-xl font-semibold mb-3">
-                  {t("Lounasbuffet", "Lunch Buffet")}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">
-                  {t("Arkisin 10:00-14:30. Sisältää kahvin ja jälkiruoan.", "Weekdays 10:00-14:30. Includes coffee and dessert.")}
-                </p>
-                <div className="text-orange-600 font-bold text-lg">
-                  {t("Kysy hinta", "Ask for price")}
-                </div>
-              </CardContent>
-            </Card>
+            {config.services.hasLunchBuffet && (
+              <Card className="cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-105">
+                <CardContent className="p-8 text-center">
+                  <div 
+                    className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"
+                    style={{ 
+                      backgroundColor: `${config.theme.secondary}20`,
+                      color: config.theme.secondary 
+                    }}
+                  >
+                    <Coffee className="w-8 h-8" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-3">
+                    {t("Lounasbuffet", "Lunch Buffet")}
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">
+                    {t("Arkisin 10:00-14:30. Sisältää kahvin ja jälkiruoan.", "Weekdays 10:00-14:30. Includes coffee and dessert.")}
+                  </p>
+                  <div style={{ color: config.theme.secondary }} className="font-bold text-lg">
+                    {t("Kysy hinta", "Ask for price")}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             <a href="tel:+358413152619">
               <Card className="cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-105">
                 <CardContent className="p-8 text-center">
-                  <div className="w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <Phone className="w-8 h-8 text-green-600" />
+                  <div 
+                    className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"
+                    style={{ 
+                      backgroundColor: `${config.theme.success}20`,
+                      color: config.theme.success 
+                    }}
+                  >
+                    <Phone className="w-8 h-8" />
                   </div>
                   <h3 className="text-xl font-semibold mb-3">
                     {t("Tilaa puhelimitse", "Order by Phone")}
@@ -107,8 +129,8 @@ export default function Home() {
                   <p className="text-gray-600 dark:text-gray-400 mb-4">
                     {t("Nopea tilaus suoraan ravintolaan", "Quick order directly to restaurant")}
                   </p>
-                  <div className="text-green-600 font-bold text-lg">
-                    +358 41 3152619
+                  <div style={{ color: config.theme.success }} className="font-bold text-lg">
+                    {config.phone}
                   </div>
                 </CardContent>
               </Card>

@@ -2,6 +2,7 @@
  * Business Hours Management
  * Handles restaurant opening/closing times and service availability
  */
+import { RESTAURANT_CONFIG } from "@/config/restaurant-config";
 
 export interface BusinessHours {
   day: number; // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
@@ -16,39 +17,29 @@ export interface ServiceHours {
   general: BusinessHours[];
 }
 
-// Default business hours configuration
-const DEFAULT_BUSINESS_HOURS: ServiceHours = {
-  // General restaurant hours - open all day for testing
-  general: [
-    { day: 1, openTime: "00:00", closeTime: "23:59", isOpen: true }, // Monday
-    { day: 2, openTime: "00:00", closeTime: "23:59", isOpen: true }, // Tuesday
-    { day: 3, openTime: "00:00", closeTime: "23:59", isOpen: true }, // Wednesday
-    { day: 4, openTime: "00:00", closeTime: "23:59", isOpen: true }, // Thursday
-    { day: 5, openTime: "00:00", closeTime: "23:59", isOpen: true }, // Friday
-    { day: 6, openTime: "00:00", closeTime: "23:59", isOpen: true }, // Saturday
-    { day: 0, openTime: "00:00", closeTime: "23:59", isOpen: true }, // Sunday
-  ],
-  // Pickup service hours - open all day for testing
-  pickup: [
-    { day: 1, openTime: "00:00", closeTime: "23:59", isOpen: true }, // Monday
-    { day: 2, openTime: "00:00", closeTime: "23:59", isOpen: true }, // Tuesday
-    { day: 3, openTime: "00:00", closeTime: "23:59", isOpen: true }, // Wednesday
-    { day: 4, openTime: "00:00", closeTime: "23:59", isOpen: true }, // Thursday
-    { day: 5, openTime: "00:00", closeTime: "23:59", isOpen: true }, // Friday
-    { day: 6, openTime: "00:00", closeTime: "23:59", isOpen: true }, // Saturday
-    { day: 0, openTime: "00:00", closeTime: "23:59", isOpen: true }, // Sunday
-  ],
-  // Delivery service hours - open all day for testing
-  delivery: [
-    { day: 1, openTime: "00:00", closeTime: "23:59", isOpen: true }, // Monday
-    { day: 2, openTime: "00:00", closeTime: "23:59", isOpen: true }, // Tuesday
-    { day: 3, openTime: "00:00", closeTime: "23:59", isOpen: true }, // Wednesday
-    { day: 4, openTime: "00:00", closeTime: "23:59", isOpen: true }, // Thursday
-    { day: 5, openTime: "00:00", closeTime: "23:59", isOpen: true }, // Friday
-    { day: 6, openTime: "00:00", closeTime: "23:59", isOpen: true }, // Saturday
-    { day: 0, openTime: "00:00", closeTime: "23:59", isOpen: true }, // Sunday
-  ],
-};
+// Convert restaurant config hours to business hours format
+function getBusinessHoursFromConfig(): ServiceHours {
+  const config = RESTAURANT_CONFIG;
+  const dayMapping = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+  
+  const convertHours = (hoursConfig: any) => {
+    return dayMapping.map((dayKey, index) => {
+      const dayHours = hoursConfig[dayKey];
+      return {
+        day: index,
+        openTime: dayHours.open,
+        closeTime: dayHours.close,
+        isOpen: !dayHours.closed
+      };
+    });
+  };
+  
+  return {
+    general: convertHours(config.hours.general),
+    pickup: convertHours(config.hours.pickup),
+    delivery: convertHours(config.hours.delivery),
+  };
+}
 
 /**
  * Convert time string to minutes since midnight
@@ -75,6 +66,7 @@ export function isRestaurantOpen(customTime?: Date): boolean {
   const now = customTime || getCurrentFinnishTime();
   const currentDay = now.getDay();
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  const businessHours = getBusinessHoursFromConfig();
 
   console.log('Business Hours Debug:', {
     currentTime: now.toISOString(),
@@ -84,7 +76,7 @@ export function isRestaurantOpen(customTime?: Date): boolean {
     currentMinute: now.getMinutes()
   });
 
-  const todayHours = DEFAULT_BUSINESS_HOURS.general.find(h => h.day === currentDay);
+  const todayHours = businessHours.general.find(h => h.day === currentDay);
   
   if (!todayHours || !todayHours.isOpen) {
     console.log('Restaurant closed - no hours for today or marked as closed');
@@ -112,8 +104,9 @@ export function isPickupAvailable(customTime?: Date): boolean {
   const now = customTime || getCurrentFinnishTime();
   const currentDay = now.getDay();
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  const businessHours = getBusinessHoursFromConfig();
 
-  const todayHours = DEFAULT_BUSINESS_HOURS.pickup.find(h => h.day === currentDay);
+  const todayHours = businessHours.pickup.find(h => h.day === currentDay);
   
   if (!todayHours || !todayHours.isOpen) {
     return false;
@@ -132,8 +125,9 @@ export function isDeliveryAvailable(customTime?: Date): boolean {
   const now = customTime || getCurrentFinnishTime();
   const currentDay = now.getDay();
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  const businessHours = getBusinessHoursFromConfig();
 
-  const todayHours = DEFAULT_BUSINESS_HOURS.delivery.find(h => h.day === currentDay);
+  const todayHours = businessHours.delivery.find(h => h.day === currentDay);
   
   if (!todayHours || !todayHours.isOpen) {
     return false;
@@ -159,12 +153,13 @@ export function getNextOpeningTime(customTime?: Date): { day: string; time: stri
   const now = customTime || getCurrentFinnishTime();
   const currentDay = now.getDay();
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  const businessHours = getBusinessHoursFromConfig();
 
   const dayNames = ['Sunnuntai', 'Maanantai', 'Tiistai', 'Keskiviikko', 'Torstai', 'Perjantai', 'Lauantai'];
   const dayNamesEn = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
   // Check if we can open today
-  const todayHours = DEFAULT_BUSINESS_HOURS.general.find(h => h.day === currentDay);
+  const todayHours = businessHours.general.find(h => h.day === currentDay);
   if (todayHours && todayHours.isOpen) {
     const openMinutes = timeToMinutes(todayHours.openTime);
     if (currentMinutes < openMinutes) {
@@ -178,7 +173,7 @@ export function getNextOpeningTime(customTime?: Date): { day: string; time: stri
   // Check next 7 days
   for (let i = 1; i <= 7; i++) {
     const checkDay = (currentDay + i) % 7;
-    const dayHours = DEFAULT_BUSINESS_HOURS.general.find(h => h.day === checkDay);
+    const dayHours = businessHours.general.find(h => h.day === checkDay);
     
     if (dayHours && dayHours.isOpen) {
       return {
@@ -198,12 +193,13 @@ export function getNextOrderingTime(customTime?: Date): { day: string; time: str
   const now = customTime || getCurrentFinnishTime();
   const currentDay = now.getDay();
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  const businessHours = getBusinessHoursFromConfig();
 
   const dayNames = ['Sunnuntai', 'Maanantai', 'Tiistai', 'Keskiviikko', 'Torstai', 'Perjantai', 'Lauantai'];
 
   // Check if we can order today
-  const todayPickup = DEFAULT_BUSINESS_HOURS.pickup.find(h => h.day === currentDay);
-  const todayDelivery = DEFAULT_BUSINESS_HOURS.delivery.find(h => h.day === currentDay);
+  const todayPickup = businessHours.pickup.find(h => h.day === currentDay);
+  const todayDelivery = businessHours.delivery.find(h => h.day === currentDay);
   
   if (todayPickup && todayPickup.isOpen) {
     const openMinutes = timeToMinutes(todayPickup.openTime);
@@ -228,8 +224,8 @@ export function getNextOrderingTime(customTime?: Date): { day: string; time: str
   // Check next 7 days
   for (let i = 1; i <= 7; i++) {
     const checkDay = (currentDay + i) % 7;
-    const pickupHours = DEFAULT_BUSINESS_HOURS.pickup.find(h => h.day === checkDay);
-    const deliveryHours = DEFAULT_BUSINESS_HOURS.delivery.find(h => h.day === checkDay);
+    const pickupHours = businessHours.pickup.find(h => h.day === checkDay);
+    const deliveryHours = businessHours.delivery.find(h => h.day === checkDay);
     
     if ((pickupHours && pickupHours.isOpen) || (deliveryHours && deliveryHours.isOpen)) {
       const earliestTime = pickupHours && pickupHours.isOpen 
@@ -272,5 +268,5 @@ export function getRestaurantStatus(customTime?: Date) {
  * Get business hours for display
  */
 export function getBusinessHours(): ServiceHours {
-  return DEFAULT_BUSINESS_HOURS;
+  return getBusinessHoursFromConfig();
 }

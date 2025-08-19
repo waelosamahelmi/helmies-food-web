@@ -26,12 +26,13 @@
   --ring: hsl(240, 5.9%, 10%);
   --radius: 0.5rem;
   
-  /* Restaurant specific colors */
-  --restaurant-red: hsl(0, 72.2%, 50.6%);
-  --restaurant-amber: hsl(45, 93%, 47%);
-  --restaurant-green: hsl(158, 64%, 52%);
-  --charcoal: hsl(218, 23%, 16%);
-  --warm-white: hsl(0, 0%, 98%);
+  /* Dynamic restaurant colors - will be updated by theme */
+  --restaurant-primary: hsl(0, 72.2%, 50.6%);
+  --restaurant-secondary: hsl(45, 93%, 47%);
+  --restaurant-accent: hsl(158, 64%, 52%);
+  --restaurant-success: hsl(158, 64%, 52%);
+  --restaurant-warning: hsl(45, 93%, 47%);
+  --restaurant-error: hsl(0, 72.2%, 50.6%);
 }
 
 .dark {
@@ -98,39 +99,51 @@
   60% { transform: translateY(-3px); }
 }
 
-/* Restaurant specific styles */
-.bg-restaurant-red {
-  background-color: var(--restaurant-red);
+/* Dynamic restaurant styles */
+.bg-restaurant-primary {
+  background-color: var(--restaurant-primary);
 }
 
-.text-restaurant-red {
-  color: var(--restaurant-red);
+.text-restaurant-primary {
+  color: var(--restaurant-primary);
 }
 
-.bg-restaurant-amber {
-  background-color: var(--restaurant-amber);
+.bg-restaurant-secondary {
+  background-color: var(--restaurant-secondary);
 }
 
-.text-restaurant-amber {
-  color: var(--restaurant-amber);
+.text-restaurant-secondary {
+  color: var(--restaurant-secondary);
 }
 
-.bg-restaurant-green {
-  background-color: var(--restaurant-green);
+.bg-restaurant-accent {
+  background-color: var(--restaurant-accent);
 }
 
-.text-restaurant-green {
-  color: var(--restaurant-green);
+.text-restaurant-accent {
+  color: var(--restaurant-accent);
 }
 
-.bg-charcoal {
-  background-color: var(--charcoal);
+.bg-restaurant-success {
+  background-color: var(--restaurant-success);
 }
 
-.text-charcoal {
-  color: var(--charcoal);
+.text-restaurant-success {
+  color: var(--restaurant-success);
 }
 
-.bg-warm-white {
-  background-color: var(--warm-white);
+.bg-restaurant-warning {
+  background-color: var(--restaurant-warning);
+}
+
+.text-restaurant-warning {
+  color: var(--restaurant-warning);
+}
+
+.bg-restaurant-error {
+  background-color: var(--restaurant-error);
+}
+
+.text-restaurant-error {
+  color: var(--restaurant-error);
 }
