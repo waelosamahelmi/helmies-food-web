@@ -33,11 +33,11 @@ export default defineConfig({
     },
     proxy: {
       '/api': {
-        target: 'https://tirvaadmin.netlify.app/',
+        target: 'https://antonio-app.fly.dev/',
         changeOrigin: true,
       },
       '/ws': {
-        target: 'wss://web-production-4bdb.up.railway.app',
+        target: 'wss://antonio-app.fly.dev',
         ws: true,
         changeOrigin: true,
       },

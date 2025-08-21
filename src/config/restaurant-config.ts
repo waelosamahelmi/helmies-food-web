@@ -266,7 +266,7 @@ export const PIZZERIA_ANTONIO_CONFIG: RestaurantConfig = {
   
   hero: {
     backgroundImage: "https://images.unsplash.com/photo-1513104890138-7c749659a591?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
-    videoUrl: "https://videos.pexels.com/video-files/4008533/4008533-hd_1366_720_50fps.mp4",
+    videoUrl: "https://videos.pexels.com/video-files/3752507/3752507-hd_1920_1080_24fps.mp4",
     features: [
       { title: "Premium pizzat", titleEn: "Premium pizzas", color: "#FF8C00" },
       { title: "Nopea toimitus", titleEn: "Fast delivery", color: "#8B4513" },
