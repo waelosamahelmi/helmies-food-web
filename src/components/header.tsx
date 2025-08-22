@@ -13,7 +13,11 @@ interface HeaderProps {
 export function Header({ onCartClick }: HeaderProps) {
   const { language, setLanguage, t } = useLanguage();
   const { totalItems } = useCart();
-  const { theme, toggleTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
+
+  const toggleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark");
+  };
   const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -34,7 +38,7 @@ export function Header({ onCartClick }: HeaderProps) {
 
   return (
     <>
-      <header className="sticky top-0 z-50 bg-white dark:bg-gray-900 shadow-lg border-b border-gray-100 dark:border-gray-700">
+      <header className="sticky top-0 z-50 bg-white dark:bg-stone-900 shadow-lg border-b border-gray-100 dark:border-stone-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}

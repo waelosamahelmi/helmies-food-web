@@ -1,4 +1,5 @@
 import { useLanguage } from "@/lib/language-context";
+import { RESTAURANT_CONFIG } from "@/config/restaurant-config";
 import { Card, CardContent } from "@/components/ui/card";
 import { Star, Quote } from "lucide-react";
 
@@ -75,7 +76,10 @@ export function TestimonialsSection() {
             <Card key={index} className="hover:shadow-lg transition-shadow">
               <CardContent className="p-6">
                 <div className="flex items-start justify-between mb-4">
-                  <Quote className="w-8 h-8 text-red-600 flex-shrink-0" />
+                  <Quote 
+                    className="w-8 h-8 flex-shrink-0" 
+                    style={{ color: RESTAURANT_CONFIG.theme.secondary }}
+                  />
                   <div className="flex space-x-1">
                     {renderStars(testimonial.rating)}
                   </div>
@@ -101,7 +105,19 @@ export function TestimonialsSection() {
           </p>
           <a
             href="contact"
-            className="inline-flex items-center px-6 py-3 border border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition-colors rounded-lg font-medium"
+            className="inline-flex items-center px-6 py-3 border transition-colors rounded-lg font-medium"
+            style={{
+              borderColor: RESTAURANT_CONFIG.theme.secondary,
+              color: RESTAURANT_CONFIG.theme.secondary,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = RESTAURANT_CONFIG.theme.secondary;
+              e.currentTarget.style.color = 'white';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.color = RESTAURANT_CONFIG.theme.secondary;
+            }}
           >
             {t("Jätä arvostelu", "Leave a Review")}
           </a>

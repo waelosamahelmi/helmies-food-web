@@ -9,7 +9,7 @@ export default function Contact() {
   const { config } = useRestaurant();
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-stone-900">
       <UniversalHeader />
       
       {/* Page Header */}

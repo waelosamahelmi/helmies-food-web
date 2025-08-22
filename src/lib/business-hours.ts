@@ -3,6 +3,7 @@
  * Handles restaurant opening/closing times and service availability
  */
 import { RESTAURANT_CONFIG } from "@/config/restaurant-config";
+import { RestaurantConfig, WeekSchedule } from "@/config/restaurant-config";
 
 export interface BusinessHours {
   day: number; // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
@@ -18,13 +19,12 @@ export interface ServiceHours {
 }
 
 // Convert restaurant config hours to business hours format
-function getBusinessHoursFromConfig(): ServiceHours {
-  const config = RESTAURANT_CONFIG;
+function getBusinessHoursFromConfig(config: RestaurantConfig = RESTAURANT_CONFIG): ServiceHours {
   const dayMapping = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
   
-  const convertHours = (hoursConfig: any) => {
+  const convertHours = (hoursConfig: WeekSchedule) => {
     return dayMapping.map((dayKey, index) => {
-      const dayHours = hoursConfig[dayKey];
+      const dayHours = hoursConfig[dayKey as keyof WeekSchedule];
       return {
         day: index,
         openTime: dayHours.open,
@@ -62,11 +62,11 @@ function getCurrentFinnishTime(): Date {
 /**
  * Check if restaurant is open for general operations
  */
-export function isRestaurantOpen(customTime?: Date): boolean {
+export function isRestaurantOpen(customTime?: Date, config?: RestaurantConfig): boolean {
   const now = customTime || getCurrentFinnishTime();
   const currentDay = now.getDay();
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
-  const businessHours = getBusinessHoursFromConfig();
+  const businessHours = getBusinessHoursFromConfig(config);
 
   console.log('Business Hours Debug:', {
     currentTime: now.toISOString(),
@@ -100,11 +100,11 @@ export function isRestaurantOpen(customTime?: Date): boolean {
 /**
  * Check if pickup service is available
  */
-export function isPickupAvailable(customTime?: Date): boolean {
+export function isPickupAvailable(customTime?: Date, config?: RestaurantConfig): boolean {
   const now = customTime || getCurrentFinnishTime();
   const currentDay = now.getDay();
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
-  const businessHours = getBusinessHoursFromConfig();
+  const businessHours = getBusinessHoursFromConfig(config);
 
   const todayHours = businessHours.pickup.find(h => h.day === currentDay);
   
@@ -121,11 +121,11 @@ export function isPickupAvailable(customTime?: Date): boolean {
 /**
  * Check if delivery service is available
  */
-export function isDeliveryAvailable(customTime?: Date): boolean {
+export function isDeliveryAvailable(customTime?: Date, config?: RestaurantConfig): boolean {
   const now = customTime || getCurrentFinnishTime();
   const currentDay = now.getDay();
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
-  const businessHours = getBusinessHoursFromConfig();
+  const businessHours = getBusinessHoursFromConfig(config);
 
   const todayHours = businessHours.delivery.find(h => h.day === currentDay);
   
@@ -142,18 +142,18 @@ export function isDeliveryAvailable(customTime?: Date): boolean {
 /**
  * Check if online ordering is available (either pickup or delivery)
  */
-export function isOnlineOrderingAvailable(customTime?: Date): boolean {
-  return isPickupAvailable(customTime) || isDeliveryAvailable(customTime);
+export function isOnlineOrderingAvailable(customTime?: Date, config?: RestaurantConfig): boolean {
+  return isPickupAvailable(customTime, config) || isDeliveryAvailable(customTime, config);
 }
 
 /**
  * Get next opening time for general restaurant
  */
-export function getNextOpeningTime(customTime?: Date): { day: string; time: string } | null {
+export function getNextOpeningTime(customTime?: Date, config?: RestaurantConfig): { day: string; time: string } | null {
   const now = customTime || getCurrentFinnishTime();
   const currentDay = now.getDay();
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
-  const businessHours = getBusinessHoursFromConfig();
+  const businessHours = getBusinessHoursFromConfig(config);
 
   const dayNames = ['Sunnuntai', 'Maanantai', 'Tiistai', 'Keskiviikko', 'Torstai', 'Perjantai', 'Lauantai'];
   const dayNamesEn = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -189,11 +189,11 @@ export function getNextOpeningTime(customTime?: Date): { day: string; time: stri
 /**
  * Get next opening time for online ordering
  */
-export function getNextOrderingTime(customTime?: Date): { day: string; time: string } | null {
+export function getNextOrderingTime(customTime?: Date, config?: RestaurantConfig): { day: string; time: string } | null {
   const now = customTime || getCurrentFinnishTime();
   const currentDay = now.getDay();
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
-  const businessHours = getBusinessHoursFromConfig();
+  const businessHours = getBusinessHoursFromConfig(config);
 
   const dayNames = ['Sunnuntai', 'Maanantai', 'Tiistai', 'Keskiviikko', 'Torstai', 'Perjantai', 'Lauantai'];
 
@@ -245,14 +245,14 @@ export function getNextOrderingTime(customTime?: Date): { day: string; time: str
 /**
  * Get current restaurant status information
  */
-export function getRestaurantStatus(customTime?: Date) {
-  const isOpen = isRestaurantOpen(customTime);
-  const isOrderingOpen = isOnlineOrderingAvailable(customTime);
-  const isPickupOpen = isPickupAvailable(customTime);
-  const isDeliveryOpen = isDeliveryAvailable(customTime);
+export function getRestaurantStatus(customTime?: Date, config?: RestaurantConfig) {
+  const isOpen = isRestaurantOpen(customTime, config);
+  const isOrderingOpen = isOnlineOrderingAvailable(customTime, config);
+  const isPickupOpen = isPickupAvailable(customTime, config);
+  const isDeliveryOpen = isDeliveryAvailable(customTime, config);
   
-  const nextOpening = getNextOpeningTime(customTime);
-  const nextOrdering = getNextOrderingTime(customTime);
+  const nextOpening = getNextOpeningTime(customTime, config);
+  const nextOrdering = getNextOrderingTime(customTime, config);
 
   return {
     isOpen,
@@ -267,6 +267,6 @@ export function getRestaurantStatus(customTime?: Date) {
 /**
  * Get business hours for display
  */
-export function getBusinessHours(): ServiceHours {
-  return getBusinessHoursFromConfig();
+export function getBusinessHours(config?: RestaurantConfig): ServiceHours {
+  return getBusinessHoursFromConfig(config);
 }

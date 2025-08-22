@@ -20,7 +20,7 @@ export function AboutSection() {
   const { config } = useRestaurant();
 
   return (
-    <section className="py-16 bg-white dark:bg-gray-800">
+    <section className="py-16 bg-white dark:bg-stone-800">
       <div className="max-w-7xl mx-auto px-4">
         {/* Main About Content */}
         <div className="text-center mb-12">
@@ -185,7 +185,7 @@ export function AboutSection() {
                 )}
               </div>
 
-              <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <div className="mt-6 p-4 bg-gray-50 dark:bg-stone-700 rounded-lg">
                 <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">
                   {t("Aukioloajat", "Opening Hours")}
                 </h4>

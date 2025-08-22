@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useLanguage } from "@/lib/language-context";
 import { useCart } from "@/lib/cart-context";
 import { useRestaurant } from "@/lib/restaurant-context";
+import { RESTAURANT_CONFIG } from "@/config/restaurant-config";
 import { useCategories, useMenuItems } from "@/hooks/use-menu";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -49,13 +50,13 @@ export default function Home() {
   const featuredItems = menuItems?.filter(item => item.isAvailable).slice(0, 6) || [];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-stone-900">
       <UniversalHeader onCartClick={handleCartOpen} />
       <RestaurantStatusHeader />
       <HeroVideo />
 
       {/* Service Highlights */}
-      <section className="py-12 bg-white dark:bg-gray-800">
+      <section className="py-12 bg-white dark:bg-stone-800">
         <div className="max-w-7xl mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-8 text-gray-900 dark:text-white">
             {t(`${config.name} tarjoaa`, `${config.nameEn} offers`)}
@@ -79,7 +80,10 @@ export default function Home() {
                   <p className="text-gray-600 dark:text-gray-400">
                     {t("Tuoreita pizzoja ja maukkaita kebabeja. Tilaa verkossa tai soita.", "Fresh pizzas and delicious kebabs. Order online or call.")}
                   </p>
-                  <div className="mt-4 text-sm text-red-600 font-medium">
+                  <div 
+                    className="mt-4 text-sm font-medium"
+                    style={{ color: RESTAURANT_CONFIG.theme.secondary }}
+                  >
                     {t("Alkaen 10,40€", "From 10,40€")}
                   </div>
                 </CardContent>
@@ -140,7 +144,7 @@ export default function Home() {
       </section>
 
       {/* Featured Items */}
-      <section className="py-8 bg-white dark:bg-gray-800">
+      <section className="py-8 bg-white dark:bg-stone-800">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -164,7 +168,10 @@ export default function Home() {
                     className="w-full h-full object-cover"
                   />
                   {item.offerPercentage && (
-                    <Badge className="absolute top-2 right-2 bg-red-500 text-white">
+                    <Badge 
+                      className="absolute top-2 right-2 text-white"
+                      style={{ backgroundColor: RESTAURANT_CONFIG.theme.warning }}
+                    >
                       -{item.offerPercentage}%
                     </Badge>
                   )}

@@ -1,5 +1,4 @@
 import { useLanguage } from "@/lib/language-context";
-import { useRestaurant } from "@/lib/restaurant-context";
 import { Card, CardContent } from "@/components/ui/card";
 import { 
   Clock, 
@@ -7,14 +6,19 @@ import {
   Truck,
   Coffee
 } from "lucide-react";
-import { getBusinessHours } from "@/lib/business-hours";
+import { useRestaurantSettings } from "@/hooks/use-restaurant-settings";
+import { isRestaurantOpen } from "@/lib/business-hours";
 
 export function ServiceHoursSection() {
   const { t } = useLanguage();
-  const { config } = useRestaurant();
+  const { config, isOpen: dbIsOpen } = useRestaurantSettings();
+
+  // Calculate if restaurant is open based on hours, but override with database setting if available
+  const isOpenByHours = isRestaurantOpen(undefined, config);
+  const effectiveIsOpen = dbIsOpen !== undefined ? dbIsOpen : isOpenByHours;
 
   return (
-    <section className="py-16 bg-gray-50 dark:bg-gray-900">
+    <section className="py-16 bg-gray-50 dark:bg-stone-900">
       <div className="max-w-7xl mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
@@ -115,13 +119,16 @@ export function ServiceHoursSection() {
           <div 
             className="inline-flex items-center space-x-2 px-4 py-2 rounded-full"
             style={{ 
-              backgroundColor: `${config.theme.success}20`,
-              color: config.theme.success 
+              backgroundColor: effectiveIsOpen ? `${config.theme.success}20` : `${config.theme.error}20`,
+              color: effectiveIsOpen ? config.theme.success : config.theme.error
             }}
           >
-            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+            <div className={`w-3 h-3 rounded-full ${effectiveIsOpen ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
             <span className="font-medium">
-              {t("Tällä hetkellä avoinna", "Currently open")}
+              {effectiveIsOpen 
+                ? t("Tällä hetkellä avoinna", "Currently open")
+                : t("Tällä hetkellä suljettu", "Currently closed")
+              }
             </span>
           </div>
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">

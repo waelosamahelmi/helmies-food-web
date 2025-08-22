@@ -3,6 +3,50 @@
  * Centralized configuration for easy restaurant customization
  */
 
+// Types for database restaurant settings
+export interface DatabaseRestaurantSettings {
+  id: number;
+  is_open: boolean;
+  opening_hours: string; // JSON string
+  pickup_hours: string; // JSON string
+  delivery_hours: string; // JSON string
+  lunch_buffet_hours: string; // JSON string
+  special_message: string | null;
+  updated_at: string;
+  default_printer_id: string | null;
+  printer_auto_reconnect: boolean;
+  printer_tab_sticky: boolean;
+}
+
+// Parsed hours format from database
+export interface ParsedHours {
+  monday: string;
+  tuesday: string;
+  wednesday: string;
+  thursday: string;
+  friday: string;
+  saturday: string;
+  sunday: string;
+}
+
+// Day schedule interface
+export interface DaySchedule {
+  open: string;
+  close: string;
+  closed: boolean;
+}
+
+// Full schedule interface
+export interface WeekSchedule {
+  monday: DaySchedule;
+  tuesday: DaySchedule;
+  wednesday: DaySchedule;
+  thursday: DaySchedule;
+  friday: DaySchedule;
+  saturday: DaySchedule;
+  sunday: DaySchedule;
+}
+
 export interface RestaurantConfig {
   // Basic Information
   name: string;
@@ -27,49 +71,17 @@ export interface RestaurantConfig {
   instagram?: string;
   website?: string;
   
-  // Business Hours
+  // Business Hours (will be overridden by database)
   hours: {
-    general: {
-      monday: { open: string; close: string; closed: boolean };
-      tuesday: { open: string; close: string; closed: boolean };
-      wednesday: { open: string; close: string; closed: boolean };
-      thursday: { open: string; close: string; closed: boolean };
-      friday: { open: string; close: string; closed: boolean };
-      saturday: { open: string; close: string; closed: boolean };
-      sunday: { open: string; close: string; closed: boolean };
-    };
-    pickup: {
-      monday: { open: string; close: string; closed: boolean };
-      tuesday: { open: string; close: string; closed: boolean };
-      wednesday: { open: string; close: string; closed: boolean };
-      thursday: { open: string; close: string; closed: boolean };
-      friday: { open: string; close: string; closed: boolean };
-      saturday: { open: string; close: string; closed: boolean };
-      sunday: { open: string; close: string; closed: boolean };
-    };
-    delivery: {
-      monday: { open: string; close: string; closed: boolean };
-      tuesday: { open: string; close: string; closed: boolean };
-      wednesday: { open: string; close: string; closed: boolean };
-      thursday: { open: string; close: string; closed: boolean };
-      friday: { open: string; close: string; closed: boolean };
-      saturday: { open: string; close: string; closed: boolean };
-      sunday: { open: string; close: string; closed: boolean };
-    };
+    general: WeekSchedule;
+    pickup: WeekSchedule;
+    delivery: WeekSchedule;
   };
   
   // Services
   services: {
     hasLunchBuffet: boolean;
-    lunchBuffetHours?: {
-      monday: { open: string; close: string; closed: boolean };
-      tuesday: { open: string; close: string; closed: boolean };
-      wednesday: { open: string; close: string; closed: boolean };
-      thursday: { open: string; close: string; closed: boolean };
-      friday: { open: string; close: string; closed: boolean };
-      saturday: { open: string; close: string; closed: boolean };
-      sunday: { open: string; close: string; closed: boolean };
-    };
+    lunchBuffetHours?: WeekSchedule;
     hasDelivery: boolean;
     hasPickup: boolean;
     hasDineIn: boolean;
@@ -98,6 +110,28 @@ export interface RestaurantConfig {
     error: string;
     background: string;
     foreground: string;
+    // Dark mode colors
+    dark?: {
+      background: string;
+      foreground: string;
+      card: string;
+      cardForeground: string;
+      popover: string;
+      popoverForeground: string;
+      primary: string;
+      primaryForeground: string;
+      secondary: string;
+      secondaryForeground: string;
+      muted: string;
+      mutedForeground: string;
+      accent: string;
+      accentForeground: string;
+      destructive: string;
+      destructiveForeground: string;
+      border: string;
+      input: string;
+      ring: string;
+    };
   };
   
   // Logo Configuration
@@ -137,6 +171,73 @@ export interface RestaurantConfig {
   };
 }
 
+// Utility functions for parsing database hours
+export function parseDatabaseHours(hoursJson: string): ParsedHours {
+  try {
+    return JSON.parse(hoursJson);
+  } catch (error) {
+    console.error('Failed to parse hours JSON:', error);
+    return {
+      monday: "10:30-21:30",
+      tuesday: "10:30-21:30",
+      wednesday: "10:30-21:30",
+      thursday: "10:30-21:30",
+      friday: "10:30-22:00",
+      saturday: "10:30-05:30",
+      sunday: "10:30-21:30"
+    };
+  }
+}
+
+export function convertDatabaseHoursToWeekSchedule(hoursJson: string): WeekSchedule {
+  const parsedHours = parseDatabaseHours(hoursJson);
+  const schedule: WeekSchedule = {} as WeekSchedule;
+  
+  Object.entries(parsedHours).forEach(([day, timeRange]) => {
+    if (timeRange === "closed" || !timeRange) {
+      schedule[day as keyof WeekSchedule] = { open: "", close: "", closed: true };
+    } else {
+      const [open, close] = timeRange.split('-');
+      schedule[day as keyof WeekSchedule] = { 
+        open: open || "10:30", 
+        close: close || "21:30", 
+        closed: false 
+      };
+    }
+  });
+  
+  return schedule;
+}
+
+export function mergeConfigWithDatabaseSettings(
+  config: RestaurantConfig, 
+  dbSettings?: DatabaseRestaurantSettings
+): RestaurantConfig {
+  if (!dbSettings) return config;
+
+  const mergedConfig = { ...config };
+
+  try {
+    // Override hours with database data
+    mergedConfig.hours = {
+      general: convertDatabaseHoursToWeekSchedule(dbSettings.opening_hours),
+      pickup: convertDatabaseHoursToWeekSchedule(dbSettings.pickup_hours),
+      delivery: convertDatabaseHoursToWeekSchedule(dbSettings.delivery_hours),
+    };
+
+    // Override lunch buffet hours if available
+    if (dbSettings.lunch_buffet_hours && mergedConfig.services.hasLunchBuffet) {
+      mergedConfig.services.lunchBuffetHours = convertDatabaseHoursToWeekSchedule(dbSettings.lunch_buffet_hours);
+    }
+
+    // Note: Special message handling will be done in components that can access the database settings directly
+  } catch (error) {
+    console.error('Failed to merge database settings:', error);
+  }
+
+  return mergedConfig;
+}
+
 // Default configuration for Pizzeria Antonio
 export const PIZZERIA_ANTONIO_CONFIG: RestaurantConfig = {
   name: "Pizzeria Antonio",
@@ -163,27 +264,27 @@ export const PIZZERIA_ANTONIO_CONFIG: RestaurantConfig = {
       tuesday: { open: "10:30", close: "21:30", closed: false },
       wednesday: { open: "10:30", close: "21:30", closed: false },
       thursday: { open: "10:30", close: "21:30", closed: false },
-      friday: { open: "11:00", close: "22:00", closed: false },
-      saturday: { open: "11:00", close: "05:30", closed: false },
-      sunday: { open: "11:00", close: "21:30", closed: false },
+      friday: { open: "10:30", close: "22:00", closed: false },
+      saturday: { open: "10:30", close: "05:30", closed: false },
+      sunday: { open: "10:30", close: "21:30", closed: false },
     },
     pickup: {
       monday: { open: "10:30", close: "21:30", closed: false },
       tuesday: { open: "10:30", close: "21:30", closed: false },
       wednesday: { open: "10:30", close: "21:30", closed: false },
       thursday: { open: "10:30", close: "21:30", closed: false },
-      friday: { open: "11:00", close: "22:00", closed: false },
-      saturday: { open: "11:00", close: "05:30", closed: false },
-      sunday: { open: "11:00", close: "21:30", closed: false },
+      friday: { open: "10:30", close: "22:00", closed: false },
+      saturday: { open: "10:30", close: "05:30", closed: false },
+      sunday: { open: "10:30", close: "21:30", closed: false },
     },
     delivery: {
       monday: { open: "10:30", close: "21:30", closed: false },
       tuesday: { open: "10:30", close: "21:30", closed: false },
       wednesday: { open: "10:30", close: "21:30", closed: false },
       thursday: { open: "10:30", close: "21:30", closed: false },
-      friday: { open: "11:00", close: "22:00", closed: false },
-      saturday: { open: "11:00", close: "05:30", closed: false },
-      sunday: { open: "11:00", close: "21:30", closed: false },
+      friday: { open: "10:30", close: "22:00", closed: false },
+      saturday: { open: "10:30", close: "05:30", closed: false },
+      sunday: { open: "10:30", close: "21:30", closed: false },
     },
   },
   
@@ -216,6 +317,28 @@ export const PIZZERIA_ANTONIO_CONFIG: RestaurantConfig = {
     error: "#dc2626", // red-600
     background: "#ffffff",
     foreground: "#1f2937", // gray-800
+    // Dark mode colors - very dark brown theme
+    dark: {
+      background: "hsl(30, 10%, 8%)", // Very dark brown
+      foreground: "hsl(0, 0%, 98%)", // Almost white
+      card: "hsl(30, 8%, 12%)", // Dark brown card
+      cardForeground: "hsl(0, 0%, 98%)",
+      popover: "hsl(30, 10%, 8%)",
+      popoverForeground: "hsl(0, 0%, 98%)",
+      primary: "#8B4513", // Same brown primary
+      primaryForeground: "hsl(0, 0%, 98%)",
+      secondary: "hsl(30, 5%, 18%)", // Dark brown secondary
+      secondaryForeground: "hsl(0, 0%, 98%)",
+      muted: "hsl(30, 5%, 15%)", // Muted brown
+      mutedForeground: "hsl(240, 5%, 64.9%)",
+      accent: "hsl(30, 5%, 18%)", // Dark brown accent
+      accentForeground: "hsl(0, 0%, 98%)",
+      destructive: "hsl(0, 62.8%, 30.6%)",
+      destructiveForeground: "hsl(0, 0%, 98%)",
+      border: "hsl(30, 5%, 18%)", // Dark brown borders
+      input: "hsl(30, 5%, 18%)", // Dark brown inputs
+      ring: "hsl(240, 4.9%, 83.9%)",
+    },
   },
   
   logo: {
@@ -275,141 +398,6 @@ export const PIZZERIA_ANTONIO_CONFIG: RestaurantConfig = {
   }
 };
 
-// Example configuration for a new restaurant
-export const NEW_RESTAURANT_CONFIG: RestaurantConfig = {
-  name: "Bella Vista",
-  nameEn: "Bella Vista",
-  tagline: "Autenttista italialaista makua",
-  taglineEn: "Authentic Italian flavors",
-  description: "Perinteisiä italialaisia makuja ja tuoreita raaka-aineita",
-  descriptionEn: "Traditional Italian flavors and fresh ingredients",
-  
-  phone: "+358 40 1234567",
-  email: "info@bellavista.fi",
-  address: {
-    street: "Keskuskatu 15",
-    postalCode: "00100",
-    city: "Helsinki",
-    country: "Finland"
-  },
-  
-  facebook: "https://facebook.com/bellavista",
-  
-  hours: {
-    general: {
-      monday: { open: "11:00", close: "22:00", closed: false },
-      tuesday: { open: "11:00", close: "22:00", closed: false },
-      wednesday: { open: "11:00", close: "22:00", closed: false },
-      thursday: { open: "11:00", close: "22:00", closed: false },
-      friday: { open: "11:00", close: "23:00", closed: false },
-      saturday: { open: "12:00", close: "23:00", closed: false },
-      sunday: { open: "12:00", close: "21:00", closed: false },
-    },
-    pickup: {
-      monday: { open: "11:00", close: "21:30", closed: false },
-      tuesday: { open: "11:00", close: "21:30", closed: false },
-      wednesday: { open: "11:00", close: "21:30", closed: false },
-      thursday: { open: "11:00", close: "21:30", closed: false },
-      friday: { open: "11:00", close: "22:30", closed: false },
-      saturday: { open: "12:00", close: "22:30", closed: false },
-      sunday: { open: "12:00", close: "20:30", closed: false },
-    },
-    delivery: {
-      monday: { open: "11:00", close: "21:00", closed: false },
-      tuesday: { open: "11:00", close: "21:00", closed: false },
-      wednesday: { open: "11:00", close: "21:00", closed: false },
-      thursday: { open: "11:00", close: "21:00", closed: false },
-      friday: { open: "11:00", close: "22:00", closed: false },
-      saturday: { open: "12:00", close: "22:00", closed: false },
-      sunday: { open: "12:00", close: "20:00", closed: false },
-    },
-  },
-  
-  services: {
-    hasLunchBuffet: false,
-    hasDelivery: true,
-    hasPickup: true,
-    hasDineIn: true,
-  },
-  
-  delivery: {
-    zones: [
-      { maxDistance: 5, fee: 2.50 },
-      { maxDistance: 15, fee: 4.50, minimumOrder: 25.00 }
-    ],
-    location: {
-      lat: 60.1699,
-      lng: 24.9384,
-    },
-  },
-  
-  theme: {
-    primary: "#059669", // emerald-600
-    secondary: "#dc2626", // red-600
-    accent: "#f59e0b", // amber-500
-    success: "#10b981", // emerald-500
-    warning: "#f59e0b", // amber-500
-    error: "#ef4444", // red-500
-    background: "#ffffff",
-    foreground: "#1f2937", // gray-800
-  },
-  
-  logo: {
-    icon: "Pizza",
-    showText: true,
-    backgroundColor: "#059669",
-  },
-  
-  about: {
-    story: "Olemme ylpeitä italialaisesta perinteestämme ja tarjoamme aitoja makuja jo yli 15 vuoden ajan.",
-    storyEn: "We are proud of our Italian heritage and have been serving authentic flavors for over 15 years.",
-    mission: "Tuomme Helsinkiin aidon italialaisen ruokakulttuurin ja tarjoamme unohtumattomia makuelämyksiä.",
-    missionEn: "We bring authentic Italian food culture to Helsinki and provide unforgettable taste experiences.",
-    specialties: [
-      {
-        title: "Napoli-tyylinen pizza",
-        titleEn: "Neapolitan Pizza",
-        description: "Perinteinen napolityyppinen pizza kivuunissa paistettuna",
-        descriptionEn: "Traditional Neapolitan pizza baked in stone oven",
-        icon: "Pizza"
-      },
-      {
-        title: "Tuore pasta",
-        titleEn: "Fresh Pasta",
-        description: "Päivittäin valmistettua tuoretta pastaa italialaisittain",
-        descriptionEn: "Daily made fresh pasta in Italian style",
-        icon: "UtensilsCrossed"
-      },
-      {
-        title: "Italialainen kahvi",
-        titleEn: "Italian Coffee",
-        description: "Aitoa italialaista espressoa ja cappuccinoa",
-        descriptionEn: "Authentic Italian espresso and cappuccino",
-        icon: "Coffee"
-      },
-      {
-        title: "Tuoreet salaatit",
-        titleEn: "Fresh Salads",
-        description: "Välimerellisiä salaatteja tuoreista aineksista",
-        descriptionEn: "Mediterranean salads from fresh ingredients",
-        icon: "Salad"
-      }
-    ],
-    experience: "Yli 15 vuotta kokemusta",
-    experienceEn: "15+ Years Experience"
-  },
-  
-  hero: {
-    backgroundImage: "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
-    videoUrl: "https://videos.pexels.com/video-files/3298637/3298637-hd_1366_720_50fps.mp4",
-    features: [
-      { title: "Kivuunissa paistettu", titleEn: "Stone oven baked", color: "#dc2626" },
-      { title: "Tuoreet ainekset", titleEn: "Fresh ingredients", color: "#059669" },
-      { title: "Italialainen perinne", titleEn: "Italian tradition", color: "#f59e0b" }
-    ]
-  }
-};
-
 // Current active configuration - change this to switch restaurants
 export const RESTAURANT_CONFIG = PIZZERIA_ANTONIO_CONFIG;
 
@@ -418,12 +406,12 @@ export const getFullAddress = (config: RestaurantConfig) => {
   return `${config.address.street}, ${config.address.postalCode} ${config.address.city}`;
 };
 
-export const getFormattedHours = (hours: any, language: string) => {
+export const getFormattedHours = (hours: WeekSchedule, language: string) => {
   const days = language === "fi" 
     ? ["Maanantai", "Tiistai", "Keskiviikko", "Torstai", "Perjantai", "Lauantai", "Sunnuntai"]
     : ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
   
-  const dayKeys = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+  const dayKeys = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] as const;
   
   return dayKeys.map((key, index) => ({
     day: days[index],

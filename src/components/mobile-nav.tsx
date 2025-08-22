@@ -26,7 +26,11 @@ import { useTheme } from "@/lib/theme-context";
 export function MobileNav() {
   const { t, language, setLanguage } = useLanguage();
   const { totalItems } = useCart();
-  const { theme, toggleTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
+
+  const toggleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark");
+  };
   const [location] = useLocation();
   
   const [isNavOpen, setIsNavOpen] = useState(false);
@@ -62,7 +66,7 @@ export function MobileNav() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 bg-white dark:bg-gray-800 shadow-lg border-b">
+      <header className="sticky top-0 z-50 bg-white dark:bg-stone-800 shadow-lg border-b">
         <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             {/* Logo */}
@@ -181,8 +185,8 @@ export function MobileNav() {
                         <div className="flex items-start space-x-2">
                           <Clock className="w-4 h-4 text-blue-600 mt-0.5" />
                           <div>
-                            <p>{t("Ma-Pe: 11:00-22:00", "Mon-Fri: 11:00-22:00")}</p>
-                            <p>{t("La-Su: 12:00-23:00", "Sat-Sun: 12:00-23:00")}</p>
+                            <p>{t("Ma-Pe: 09:30-22:30", "Mon-Fri: 09:30-22:30")}</p>
+                            <p>{t("La-Su: 09:30-05:30", "Sat-Sun: 09:30-05:30")}</p>
                           </div>
                         </div>
                       </div>

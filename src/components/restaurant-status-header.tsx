@@ -2,10 +2,12 @@ import { useState, useEffect } from "react";
 import { useLanguage } from "@/lib/language-context";
 import { Clock, Store, ShoppingCart } from "lucide-react";
 import { getRestaurantStatus } from "@/lib/business-hours";
+import { useRestaurantSettings } from "@/hooks/use-restaurant-settings";
 
 export function RestaurantStatusHeader() {
   const { t } = useLanguage();
   const [currentTime, setCurrentTime] = useState(new Date());
+  const { config, isOpen: dbIsOpen } = useRestaurantSettings();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -15,8 +17,11 @@ export function RestaurantStatusHeader() {
     return () => clearInterval(timer);
   }, []);
 
-  const status = getRestaurantStatus(currentTime);
+  const status = getRestaurantStatus(currentTime, config);
   const { isOpen: restaurantOpen, isOrderingOpen, nextOpening, nextOrdering } = status;
+
+  // Use database override if available, otherwise use calculated status
+  const effectiveIsOpen = dbIsOpen !== undefined ? dbIsOpen : restaurantOpen;
 
   return (
     <div className="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-950 dark:to-orange-950 border-b">
@@ -24,15 +29,15 @@ export function RestaurantStatusHeader() {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <Store className="w-5 h-5 text-red-600" />
-            <div className={`w-2 h-2 rounded-full ${restaurantOpen ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
+            <div className={`w-2 h-2 rounded-full ${effectiveIsOpen ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2">
               <span className="text-sm font-medium">
-                {restaurantOpen 
-                  ? t("Avoinna 06:00-20:00", "Open 06:00-20:00")
+                {effectiveIsOpen 
+                  ? t("Avoinna", "Open")
                   : t("Suljettu", "Closed")
                 }
               </span>
-              {!restaurantOpen && nextOpening && (
+              {!effectiveIsOpen && nextOpening && (
                 <span className="text-xs text-gray-600 dark:text-gray-400">
                   {t(`Avautuu ${nextOpening.day} ${nextOpening.time}`, `Opens ${nextOpening.day} ${nextOpening.time}`)}
                 </span>

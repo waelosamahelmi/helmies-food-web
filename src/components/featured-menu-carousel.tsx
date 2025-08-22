@@ -46,7 +46,7 @@ export function FeaturedMenuCarousel() {
   if (!featuredItems.length) return null;
 
   return (
-    <section className="py-16 bg-gray-50 dark:bg-gray-900">
+    <section className="py-16 bg-gray-50 dark:bg-stone-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <div className="flex items-center justify-center space-x-2 mb-4">
@@ -71,7 +71,7 @@ export function FeaturedMenuCarousel() {
               onClick={prevSlide}
               variant="outline"
               size="sm"
-              className="rounded-full bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl transition-shadow"
+              className="rounded-full bg-white dark:bg-stone-800 shadow-lg hover:shadow-xl transition-shadow"
             >
               <ChevronLeft className="w-4 h-4" />
             </Button>
@@ -81,7 +81,7 @@ export function FeaturedMenuCarousel() {
               onClick={nextSlide}
               variant="outline"
               size="sm"
-              className="rounded-full bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl transition-shadow"
+              className="rounded-full bg-white dark:bg-stone-800 shadow-lg hover:shadow-xl transition-shadow"
             >
               <ChevronRight className="w-4 h-4" />
             </Button>
@@ -95,7 +95,7 @@ export function FeaturedMenuCarousel() {
             >
               {featuredItems.map((item, index) => (
                 <div key={item.id} className="w-1/3 flex-shrink-0 px-3">
-                  <Card className="overflow-hidden hover:shadow-xl transition-all transform hover:scale-105 bg-white dark:bg-gray-800">
+                  <Card className="overflow-hidden hover:shadow-xl transition-all transform hover:scale-105 bg-white dark:bg-stone-800">
                     {item.imageUrl && (
                       <div className="relative">
                         <img

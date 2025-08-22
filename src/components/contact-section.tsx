@@ -38,13 +38,13 @@ const ContactSection: React.FC = () => {
   }, []);
 
   return (
-    <section id="contact" className="py-16 bg-gray-50">
+    <section id="contact" className="py-16 bg-gray-50 dark:bg-stone-900">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
             {language === 'fi' ? 'Ota yhteyttä' : 'Contact Us'}
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
             {language === 'fi' 
               ? 'Ota meihin yhteyttä varausten, catering-palveluiden tai kysymysten osalta.'
               : 'Get in touch with us for reservations, catering, or any questions you may have.'
@@ -132,7 +132,7 @@ const ContactSection: React.FC = () => {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       {language === 'fi' ? 'Etunimi' : 'First Name'}
                     </label>
                     <Input
@@ -144,7 +144,7 @@ const ContactSection: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       {language === 'fi' ? 'Sukunimi' : 'Last Name'}
                     </label>
                     <Input
@@ -158,7 +158,7 @@ const ContactSection: React.FC = () => {
                 </div>
                 
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Email
                   </label>
                   <Input
@@ -171,7 +171,7 @@ const ContactSection: React.FC = () => {
                 </div>
                 
                 <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     {language === 'fi' ? 'Puhelin (valinnainen)' : 'Phone (optional)'}
                   </label>
                   <Input
@@ -183,7 +183,7 @@ const ContactSection: React.FC = () => {
                 </div>
                 
                 <div>
-                  <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="subject" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     {language === 'fi' ? 'Aihe' : 'Subject'}
                   </label>
                   <Input
@@ -196,7 +196,7 @@ const ContactSection: React.FC = () => {
                 </div>
                 
                 <div>
-                  <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     {language === 'fi' ? 'Viesti' : 'Message'}
                   </label>
                   <Textarea

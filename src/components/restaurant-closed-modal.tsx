@@ -61,7 +61,7 @@ export function RestaurantClosedModal({ isOpen, onClose }: RestaurantClosedModal
                   {t("Nouto", "Pickup")}
                 </span>
                 <span className="text-sm font-medium text-gray-900 dark:text-white">
-                  10:00 - 20:00
+                  10:30 - 21:30
                 </span>
               </div>
               
@@ -70,7 +70,7 @@ export function RestaurantClosedModal({ isOpen, onClose }: RestaurantClosedModal
                   {t("Kotiinkuljetus", "Delivery")}
                 </span>
                 <span className="text-sm font-medium text-gray-900 dark:text-white">
-                  10:00 - 19:30
+                  10:30 - 21:30
                 </span>
               </div>
             </div>

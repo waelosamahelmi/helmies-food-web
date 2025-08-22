@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useCategories, useMenuItems } from "@/hooks/use-menu";
 import { useLanguage } from "@/lib/language-context";
 import { useCart } from "@/lib/cart-context";
+import { RESTAURANT_CONFIG } from "@/config/restaurant-config";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -33,12 +34,14 @@ import {
 import { Link } from "wouter";
 import { Input } from "@/components/ui/input";
 import { isOnlineOrderingAvailable, getRestaurantStatus } from "@/lib/business-hours";
+import { useRestaurantSettings } from "@/hooks/use-restaurant-settings";
 
 export default function Menu() {
   const { t } = useLanguage();
   const { data: categories } = useCategories();
   const { data: menuItems, isLoading } = useMenuItems();
   const { addItem } = useCart();
+  const { config } = useRestaurantSettings();
   
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
@@ -52,7 +55,7 @@ export default function Menu() {
   // Check ordering availability
   useEffect(() => {
     const checkOrderingStatus = () => {
-      const available = isOnlineOrderingAvailable();
+      const available = isOnlineOrderingAvailable(undefined, config);
       setIsOrderingAvailable(available);
       
       // Show closed modal if user tries to access menu when closed
@@ -67,7 +70,7 @@ export default function Menu() {
     const interval = setInterval(checkOrderingStatus, 60000);
     
     return () => clearInterval(interval);
-  }, [showClosedModal]);
+  }, [showClosedModal, config]);
 
   const handleCartOpen = () => {
     if (!isOrderingAvailable) {
@@ -145,7 +148,7 @@ export default function Menu() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen bg-gray-50 dark:bg-stone-900">
         <MobileNav />
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -166,11 +169,11 @@ export default function Menu() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-stone-900">
       <UniversalHeader onCartClick={handleCartOpen} />
       
       {/* Page Header */}
-      <div className="bg-white dark:bg-gray-800 shadow-sm border-b">
+      <div className="bg-white dark:bg-stone-800 shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
             {t("Menu", "Menu")}
@@ -195,9 +198,12 @@ export default function Menu() {
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
               <Button
                 variant={selectedCategory === "all" ? "default" : "outline"}
-                className={`flex flex-col items-center p-4 h-auto space-y-2 ${
-                  selectedCategory === "all" ? "bg-red-600 hover:bg-red-700" : ""
-                }`}
+                className="flex flex-col items-center p-4 h-auto space-y-2"
+                style={selectedCategory === "all" ? {
+                  backgroundColor: RESTAURANT_CONFIG.theme.secondary,
+                  borderColor: RESTAURANT_CONFIG.theme.secondary,
+                  color: 'white'
+                } : {}}
                 onClick={() => setSelectedCategory("all")}
               >
                 <UtensilsCrossed className="w-6 h-6" />
@@ -212,9 +218,12 @@ export default function Menu() {
                   <Button
                     key={category.id}
                     variant={selectedCategory === category.id.toString() ? "default" : "outline"}
-                    className={`flex flex-col items-center p-4 h-auto space-y-2 ${
-                      selectedCategory === category.id.toString() ? "bg-red-600 hover:bg-red-700" : ""
-                    }`}
+                    className="flex flex-col items-center p-4 h-auto space-y-2"
+                    style={selectedCategory === category.id.toString() ? {
+                      backgroundColor: RESTAURANT_CONFIG.theme.secondary,
+                      borderColor: RESTAURANT_CONFIG.theme.secondary,
+                      color: 'white'
+                    } : {}}
                     onClick={() => setSelectedCategory(category.id.toString())}
                   >
                     <IconComponent className="w-6 h-6" />
@@ -291,7 +300,10 @@ export default function Menu() {
                   )}
                   
                   {item.offerPercentage && (
-                    <Badge className="absolute top-3 right-3 bg-red-500 text-white text-sm px-2 py-1">
+                    <Badge 
+                      className="absolute top-3 right-3 text-white text-sm px-2 py-1"
+                      style={{ backgroundColor: RESTAURANT_CONFIG.theme.warning }}
+                    >
                       -{item.offerPercentage}%
                     </Badge>
                   )}
@@ -331,7 +343,10 @@ export default function Menu() {
                     <div className="flex items-center space-x-2">
                       {item.offerPrice ? (
                         <>
-                          <span className="text-lg font-bold text-red-600">
+                          <span 
+                            className="text-lg font-bold"
+                            style={{ color: RESTAURANT_CONFIG.theme.warning }}
+                          >
                             {formatPrice(item.offerPrice)}
                           </span>
                           <span className="text-sm text-gray-500 line-through">

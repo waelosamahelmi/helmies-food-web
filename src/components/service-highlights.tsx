@@ -1,4 +1,5 @@
 import { useLanguage } from "@/lib/language-context";
+import { RESTAURANT_CONFIG } from "@/config/restaurant-config";
 import { Bike, ShoppingBag, UtensilsCrossed } from "lucide-react";
 
 export function ServiceHighlights() {
@@ -9,19 +10,22 @@ export function ServiceHighlights() {
       icon: Bike,
       title: t("Kotiinkuljetus", "Delivery"),
       description: t("Nopea ja luotettava toimitus suoraan ovellesi", "Fast and reliable delivery to your door"),
-      color: "text-red-600 bg-red-50",
+      bgColor: `${RESTAURANT_CONFIG.theme.secondary}20`,
+      textColor: RESTAURANT_CONFIG.theme.secondary,
     },
     {
       icon: ShoppingBag,
       title: t("Nouto", "Pickup"),
       description: t("Tilaa etukäteen ja nouda sopivana aikana", "Order ahead and pickup at your convenience"),
-      color: "text-amber-600 bg-amber-50",
+      bgColor: '#fef3c7',
+      textColor: '#d97706',
     },
     {
       icon: UtensilsCrossed,
       title: t("Ravintolassa", "Dine-in"),
       description: t("Nauti ateriastasi viihtyisässä ympäristössämme", "Enjoy your meal in our cozy atmosphere"),
-      color: "text-green-600 bg-green-50",
+      bgColor: '#dcfce7',
+      textColor: '#16a34a',
     },
   ];
 
@@ -33,7 +37,13 @@ export function ServiceHighlights() {
             const Icon = service.icon;
             return (
               <div key={index} className="text-center">
-                <div className={`w-16 h-16 ${service.color} rounded-full flex items-center justify-center mx-auto mb-4`}>
+                <div 
+                  className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+                  style={{
+                    backgroundColor: service.bgColor,
+                    color: service.textColor
+                  }}
+                >
                   <Icon className="w-8 h-8" />
                 </div>
                 <h3 className="text-xl font-semibold mb-2">{service.title}</h3>

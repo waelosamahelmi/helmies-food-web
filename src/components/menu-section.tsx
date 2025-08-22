@@ -115,7 +115,7 @@ export function MenuSection() {
   }
 
   return (
-    <section id="menu" className="py-16 bg-gray-50 dark:bg-gray-900">
+    <section id="menu" className="py-16 bg-gray-50 dark:bg-stone-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
@@ -198,7 +198,7 @@ export function MenuSection() {
             className={`px-6 py-2 font-medium transition-all ${
               activeCategory === null
                 ? "bg-red-600 text-white hover:bg-red-700"
-                : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 border"
+                : "bg-white dark:bg-stone-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-stone-700 border"
             }`}
           >
             {t("Kaikki", "All")}
@@ -211,7 +211,7 @@ export function MenuSection() {
               className={`px-6 py-2 font-medium transition-all ${
                 activeCategory === category.id
                   ? "bg-red-600 text-white hover:bg-red-700"
-                  : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 border"
+                  : "bg-white dark:bg-stone-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-stone-700 border"
               }`}
             >
               {language === "fi" ? category.name : category.nameEn}

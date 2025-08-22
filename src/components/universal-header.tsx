@@ -3,6 +3,7 @@ import { useLanguage } from "@/lib/language-context";
 import { useCart } from "@/lib/cart-context";
 import { useTheme } from "@/lib/theme-context";
 import { useRestaurant } from "@/lib/restaurant-context";
+import { RESTAURANT_CONFIG } from "@/config/restaurant-config";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Logo } from "@/components/logo";
@@ -16,7 +17,11 @@ interface UniversalHeaderProps {
 export function UniversalHeader({ onCartClick }: UniversalHeaderProps) {
   const { language, setLanguage, t } = useLanguage();
   const { totalItems } = useCart();
-  const { theme, toggleTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
+
+  const toggleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark");
+  };
   const { config } = useRestaurant();
   const [location] = useLocation();
   const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
@@ -46,7 +51,7 @@ export function UniversalHeader({ onCartClick }: UniversalHeaderProps) {
 
   return (
     <>
-      <header className="sticky top-0 z-50 bg-white dark:bg-gray-900 shadow-lg border-b border-gray-100 dark:border-gray-700">
+      <header className="sticky top-0 z-50 bg-white dark:bg-stone-900 shadow-lg border-b border-gray-100 dark:border-stone-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
@@ -60,10 +65,21 @@ export function UniversalHeader({ onCartClick }: UniversalHeaderProps) {
                 <Link key={item.href} href={item.href}>
                   <Button
                     variant={location === item.href ? "default" : "ghost"}
-                    className="text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-colors font-medium"
+                    className="text-gray-700 dark:text-gray-300 transition-colors font-medium"
                     style={{
                       backgroundColor: location === item.href ? config.theme.primary : undefined,
-                      color: location === item.href ? 'white' : undefined
+                      color: location === item.href ? 'white' : undefined,
+                      '--hover-color': RESTAURANT_CONFIG.theme.secondary
+                    } as React.CSSProperties & { '--hover-color': string }}
+                    onMouseEnter={(e) => {
+                      if (location !== item.href) {
+                        e.currentTarget.style.color = RESTAURANT_CONFIG.theme.secondary;
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (location !== item.href) {
+                        e.currentTarget.style.color = '';
+                      }
                     }}
                   >
                     {item.label}
@@ -102,14 +118,14 @@ export function UniversalHeader({ onCartClick }: UniversalHeaderProps) {
                 </Button>
                 
                 {isLanguageMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-32 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50">
+                  <div className="absolute right-0 mt-2 w-32 bg-white dark:bg-stone-800 rounded-lg shadow-lg border border-gray-200 dark:border-stone-700 z-50">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         setLanguage("fi");
                         setIsLanguageMenuOpen(false);
                       }}
-                      className={`w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-lg text-sm ${
+                      className={`w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-stone-700 rounded-t-lg text-sm ${
                         language === "fi" ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400" : ""
                       }`}
                     >
@@ -121,7 +137,7 @@ export function UniversalHeader({ onCartClick }: UniversalHeaderProps) {
                         setLanguage("en");
                         setIsLanguageMenuOpen(false);
                       }}
-                      className={`w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 rounded-b-lg text-sm ${
+                      className={`w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-stone-700 rounded-b-lg text-sm ${
                         language === "en" ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400" : ""
                       }`}
                     >
@@ -190,7 +206,7 @@ export function UniversalHeader({ onCartClick }: UniversalHeaderProps) {
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-40 md:hidden">
           <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setIsMobileMenuOpen(false)}></div>
-          <div className="fixed top-16 right-0 w-64 h-full bg-white dark:bg-gray-900 shadow-xl overflow-y-auto">
+          <div className="fixed top-16 right-0 w-64 h-full bg-white dark:bg-stone-900 shadow-xl overflow-y-auto">
             <div className="p-4 space-y-4">
               {/* Mobile Navigation Links */}
               <div className="space-y-3">
@@ -236,7 +252,7 @@ export function UniversalHeader({ onCartClick }: UniversalHeaderProps) {
                       className={`w-full text-left px-3 py-2 rounded text-sm ${
                         language === "fi" 
                           ? "text-blue-600 dark:text-blue-400" 
-                          : "hover:bg-gray-100 dark:hover:bg-gray-700"
+                          : "hover:bg-gray-100 dark:hover:bg-stone-700"
                       }`}
                       style={{
                         backgroundColor: language === "fi" ? `${config.theme.primary}20` : undefined
@@ -252,7 +268,7 @@ export function UniversalHeader({ onCartClick }: UniversalHeaderProps) {
                       className={`w-full text-left px-3 py-2 rounded text-sm ${
                         language === "en" 
                           ? "text-blue-600 dark:text-blue-400" 
-                          : "hover:bg-gray-100 dark:hover:bg-gray-700"
+                          : "hover:bg-gray-100 dark:hover:bg-stone-700"
                       }`}
                       style={{
                         backgroundColor: language === "en" ? `${config.theme.primary}20` : undefined

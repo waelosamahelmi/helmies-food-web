@@ -507,18 +507,18 @@ const AdminPage: React.FC<AdminPageProps> = ({ onClose }) => {
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold">Colors</h3>
                     <div className="grid grid-cols-3 gap-4">
-                      {Object.entries(config.theme).map(([key, value]) => (
+                      {Object.entries(config.theme).filter(([key, value]) => typeof value === 'string').map(([key, value]) => (
                         <div key={key} className="space-y-2">
                           <Label className="capitalize">{key}</Label>
                           <div className="flex items-center space-x-2">
                             <Input
                               type="color"
-                              value={value}
+                              value={value as string}
                               onChange={(e) => updateConfig(`theme.${key}`, e.target.value)}
                               className="w-12 h-10 p-1"
                             />
                             <Input
-                              value={value}
+                              value={value as string}
                               onChange={(e) => updateConfig(`theme.${key}`, e.target.value)}
                               className="flex-1"
                             />
