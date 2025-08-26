@@ -25,7 +25,7 @@ export function OrderSuccessModal({ isOpen, onClose, orderType, orderNumber }: O
       };
     } else {
       return {
-        time: "15 minuuttia",
+        time: "15 minuLahtia",
         timeEn: "15 minutes", 
         icon: <ShoppingBag className="w-8 h-8 text-blue-600" />,
         message: "Tilauksesi on valmis noudettavaksi 15 minuutin sisällä!",
@@ -117,10 +117,10 @@ export function OrderSuccessModal({ isOpen, onClose, orderType, orderNumber }: O
             <CardContent className="p-4">
               <div className="text-center space-y-1">
                 <p className="font-semibold text-red-800 dark:text-red-200">
-                  Tirvan Kahvila
+                  Pizzeria Antonio
                 </p>
                 <p className="text-sm text-red-700 dark:text-red-300">
-                  Pasintie 2, 45410 Utti
+                  Pasintie 2, 45410 Lahti
                 </p>
                 <p className="text-sm text-red-700 dark:text-red-300">
                   +358 41 3152619

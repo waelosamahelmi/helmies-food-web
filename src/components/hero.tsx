@@ -36,7 +36,7 @@ export function Hero() {
       <div className="relative z-10 text-center text-white max-w-5xl mx-auto px-4">
         <div className="animate-fade-in">
           <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-            {t("Tirvan Kahvila", "Tirvan Kahvila")}
+            {t("Pizzeria Antonio", "Pizzeria Antonio")}
           </h1>
           <p className="text-2xl md:text-3xl mb-4 font-light">
             {t("Tervetuloa!", "Welcome!")}
@@ -46,7 +46,7 @@ export function Hero() {
         <p className="text-xl md:text-2xl mb-8 text-gray-200 animate-slide-up max-w-3xl mx-auto">
           {t(
             "Tuoreista raaka-aineista valmistetut herkut Utin sydämessä - pizza, kebab ja paljon muuta",
-            "Delicacies made from fresh ingredients in the heart of Utti - pizza, kebab and much more"
+            "Delicacies made from fresh ingredients in the heart of Lahti - pizza, kebab and much more"
           )}
         </p>
 
@@ -73,7 +73,7 @@ export function Hero() {
               <MapPin className="w-5 h-5" />
               <div className="text-center">
                 <span className="text-sm font-medium block">Pasintie 2</span>
-                <p className="text-xs text-gray-300">45410 Utti</p>
+                <p className="text-xs text-gray-300">45410 Lahti</p>
               </div>
             </div>
           </div>

@@ -140,7 +140,7 @@ export function MobileNav() {
                 <SheetContent side="right" className="w-80">
                   <SheetHeader>
                     <SheetTitle className="text-left">
-                      Tirvan Kahvila
+                      Pizzeria Antonio
                     </SheetTitle>
                   </SheetHeader>
                   
@@ -178,7 +178,7 @@ export function MobileNav() {
                           <MapPin className="w-4 h-4 text-red-600 mt-0.5" />
                           <div>
                             <p>Pasintie 2</p>
-                            <p>45410 Utti</p>
+                            <p>45410 Lahti</p>
                           </div>
                         </div>
                         

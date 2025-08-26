@@ -53,7 +53,7 @@ export default function Terms() {
             <CardContent className="prose dark:prose-invert max-w-none">
               <p>
                 {t(
-                  "Kaikki tilaukset ovat sitovia. Maksu tapahtuu toimituksen yhteydessä käteisellä tai kortilla. Peruutukset on tehtävä viimeistään 15 minuuttia tilauksen jälkeen.",
+                  "Kaikki tilaukset ovat sitovia. Maksu tapahtuu toimituksen yhteydessä käteisellä tai kortilla. Peruutukset on tehtävä viimeistään 15 minuLahtia tilauksen jälkeen.",
                   "All orders are binding. Payment is made upon delivery with cash or card. Cancellations must be made no later than 15 minutes after ordering."
                 )}
               </p>
