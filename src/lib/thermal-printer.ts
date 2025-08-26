@@ -468,7 +468,7 @@ printer connectivity.
     receipt += '==============================' + lineFeed;
     receipt += 'Pasintie 2, 45410 Lahti' + lineFeed;
     receipt += '+358 41 3152619' + lineFeed;
-    receipt += 'www.tirvankahvila.fi' + lineFeed;
+    receipt += 'www.pizzeriaantonio.fi' + lineFeed;
     receipt += lineFeed;
     
     // Order info

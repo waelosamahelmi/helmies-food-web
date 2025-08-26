@@ -284,7 +284,7 @@ export function StructuredAddressInput({
         {
           headers: {
             'Accept': 'application/json',
-            'User-Agent': 'TirvaRestaurant/1.0' // Required by Nominatim ToS
+            'User-Agent': 'AntonioRestaurant/1.0' // Required by Nominatim ToS
           }
         }
       );
@@ -380,7 +380,7 @@ export function StructuredAddressInput({
           {
             headers: {
               'Accept': 'application/json',
-              'User-Agent': 'TirvaRestaurant/1.0'
+              'User-Agent': 'AntonioRestaurant/1.0'
             }
           }
         );

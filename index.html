@@ -40,10 +40,10 @@
       if ('caches' in window) {
         caches.keys().then((cacheNames) => {
           const oldCaches = cacheNames.filter(name => 
-            name.includes('tirva-customer-v1') || 
-            name.includes('tirva-customer-v2') ||
-            name.includes('tirva-static-v1') ||
-            name.includes('tirva-static-v2')
+            name.includes('antonio-customer-v1') || 
+            name.includes('antonio-customer-v2') ||
+            name.includes('antonio-static-v1') ||
+            name.includes('antonio-static-v2')
           );
           
           if (oldCaches.length > 0) {
