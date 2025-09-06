@@ -1,4 +1,5 @@
 import React from 'react';
+import { useRestaurantConfig } from '../hooks/use-restaurant-config';
 import { useRestaurantSettings } from '../hooks/use-restaurant-settings';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
@@ -10,7 +11,11 @@ import { Clock, Store, Phone, Mail, MapPin } from 'lucide-react';
  * This integrates database restaurant settings with the configuration system
  */
 export function RestaurantDemo() {
-  const { config, dbSettings, loading, error, isOpen, specialMessage } = useRestaurantSettings();
+  const { config: baseConfig, loading: configLoading, error: configError } = useRestaurantConfig();
+  const { config, dbSettings, loading: settingsLoading, error: settingsError, isOpen, specialMessage } = useRestaurantSettings();
+
+  const loading = configLoading || settingsLoading;
+  const error = configError || settingsError;
 
   if (loading) {
     return (

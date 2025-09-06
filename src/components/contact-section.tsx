@@ -4,11 +4,13 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
 import { Phone, Mail, MapPin, Clock } from 'lucide-react';
-import { RESTAURANT_CONFIG, getFullAddress, getFormattedHours } from '../config/restaurant-config';
+import { getFullAddress, getFormattedHours } from '../config/restaurant-config';
 import { useLanguage } from '../lib/language-context';
+import { useRestaurant } from '../lib/restaurant-context';
 
 const ContactSection: React.FC = () => {
   const { language } = useLanguage();
+  const { config } = useRestaurant();
   
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -16,7 +18,19 @@ const ContactSection: React.FC = () => {
     console.log('Contact form submitted');
   };
 
-  const formattedHours = getFormattedHours(RESTAURANT_CONFIG.hours.general, language);
+  if (!config) {
+    return (
+      <section id="contact" className="py-16 bg-gray-50 dark:bg-stone-900">
+        <div className="container mx-auto px-4">
+          <div className="text-center">
+            <p>Loading contact information...</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  const formattedHours = getFormattedHours(config.hours.general, language);
   
   // Group consecutive days with same hours
   const groupedHours = formattedHours.reduce((acc: any[], curr, index) => {
@@ -63,7 +77,7 @@ const ContactSection: React.FC = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-lg">{RESTAURANT_CONFIG.phone}</p>
+                <p className="text-lg">{config.phone}</p>
               </CardContent>
             </Card>
 
@@ -75,7 +89,7 @@ const ContactSection: React.FC = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-lg">{RESTAURANT_CONFIG.email}</p>
+                <p className="text-lg">{config.email}</p>
               </CardContent>
             </Card>
 
@@ -88,8 +102,8 @@ const ContactSection: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-lg">
-                  {RESTAURANT_CONFIG.address.street}<br />
-                  {RESTAURANT_CONFIG.address.postalCode} {RESTAURANT_CONFIG.address.city}
+                  {config.address.street}<br />
+                  {config.address.postalCode} {config.address.city}
                 </p>
               </CardContent>
             </Card>

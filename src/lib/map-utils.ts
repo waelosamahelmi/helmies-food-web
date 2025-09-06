@@ -1,11 +1,13 @@
-import { RESTAURANT_CONFIG } from "@/config/restaurant-config";
+import { RestaurantConfig } from "@/config/restaurant-config";
 
-// Restaurant location from config
-export const RESTAURANT_LOCATION = {
-  lat: RESTAURANT_CONFIG.delivery.location.lat,
-  lng: RESTAURANT_CONFIG.delivery.location.lng,
-  address: `${RESTAURANT_CONFIG.address.street}, ${RESTAURANT_CONFIG.address.postalCode} ${RESTAURANT_CONFIG.address.city}, ${RESTAURANT_CONFIG.address.country}`
-};
+// Get restaurant location from config
+export function getRestaurantLocation(config: RestaurantConfig) {
+  return {
+    lat: config.delivery.location.lat,
+    lng: config.delivery.location.lng,
+    address: `${config.address.street}, ${config.address.postalCode} ${config.address.city}, ${config.address.country}`
+  };
+}
 
 // Calculate distance between two coordinates using Haversine formula
 export function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -21,10 +23,10 @@ export function calculateDistance(lat1: number, lng1: number, lat2: number, lng2
 }
 
 // Calculate delivery fee based on distance
-export function calculateDeliveryFee(distance: number): number {
+export function calculateDeliveryFee(distance: number, config: RestaurantConfig): number {
   if (!distance || isNaN(distance)) return RESTAURANT_CONFIG.delivery.zones[0].fee;
   
-  for (const zone of RESTAURANT_CONFIG.delivery.zones) {
+  for (const zone of config.delivery.zones) {
     if (distance <= zone.maxDistance) {
       return zone.fee;
     }
@@ -34,11 +36,11 @@ export function calculateDeliveryFee(distance: number): number {
 }
 
 // Get delivery zone description
-export function getDeliveryZone(distance: number): { zone: string; description: string } {
-  for (let i = 0; i < RESTAURANT_CONFIG.delivery.zones.length; i++) {
-    const zone = RESTAURANT_CONFIG.delivery.zones[i];
+export function getDeliveryZone(distance: number, config: RestaurantConfig): { zone: string; description: string } {
+  for (let i = 0; i < config.delivery.zones.length; i++) {
+    const zone = config.delivery.zones[i];
     if (distance <= zone.maxDistance) {
-      const prevMax = i > 0 ? RESTAURANT_CONFIG.delivery.zones[i-1].maxDistance : 0;
+      const prevMax = i > 0 ? config.delivery.zones[i-1].maxDistance : 0;
       return {
         zone: i === 0 ? "standard" : "extended",
         description: `Kuljetusalue ${prevMax}-${zone.maxDistance}km`

@@ -399,6 +399,7 @@ export const PIZZERIA_ANTONIO_CONFIG: RestaurantConfig = {
 };
 
 // Current active configuration - change this to switch restaurants
+// NOTE: This is now a fallback - the actual config comes from the database
 export const RESTAURANT_CONFIG = PIZZERIA_ANTONIO_CONFIG;
 
 // Helper functions

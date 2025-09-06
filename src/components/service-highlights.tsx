@@ -1,17 +1,30 @@
 import { useLanguage } from "@/lib/language-context";
-import { RESTAURANT_CONFIG } from "@/config/restaurant-config";
+import { useRestaurant } from "@/lib/restaurant-context";
 import { Bike, ShoppingBag, UtensilsCrossed } from "lucide-react";
 
 export function ServiceHighlights() {
   const { t } = useLanguage();
+  const { config } = useRestaurant();
+
+  if (!config) {
+    return (
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <p>Loading services...</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   const services = [
     {
       icon: Bike,
       title: t("Kotiinkuljetus", "Delivery"),
       description: t("Nopea ja luotettava toimitus suoraan ovellesi", "Fast and reliable delivery to your door"),
-      bgColor: `${RESTAURANT_CONFIG.theme.secondary}20`,
-      textColor: RESTAURANT_CONFIG.theme.secondary,
+      bgColor: `${config.theme.secondary}20`,
+      textColor: config.theme.secondary,
     },
     {
       icon: ShoppingBag,

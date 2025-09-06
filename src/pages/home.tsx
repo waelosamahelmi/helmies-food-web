@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useLanguage } from "@/lib/language-context";
 import { useCart } from "@/lib/cart-context";
 import { useRestaurant } from "@/lib/restaurant-context";
-import { RESTAURANT_CONFIG } from "@/config/restaurant-config";
 import { useCategories, useMenuItems } from "@/hooks/use-menu";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -170,7 +169,7 @@ export default function Home() {
                   {item.offerPercentage && (
                     <Badge 
                       className="absolute top-2 right-2 text-white"
-                      style={{ backgroundColor: RESTAURANT_CONFIG.theme.warning }}
+                      style={{ backgroundColor: config.theme.warning }}
                     >
                       -{item.offerPercentage}%
                     </Badge>

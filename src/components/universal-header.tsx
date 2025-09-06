@@ -3,7 +3,6 @@ import { useLanguage } from "@/lib/language-context";
 import { useCart } from "@/lib/cart-context";
 import { useTheme } from "@/lib/theme-context";
 import { useRestaurant } from "@/lib/restaurant-context";
-import { RESTAURANT_CONFIG } from "@/config/restaurant-config";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Logo } from "@/components/logo";
@@ -69,11 +68,11 @@ export function UniversalHeader({ onCartClick }: UniversalHeaderProps) {
                     style={{
                       backgroundColor: location === item.href ? config.theme.primary : undefined,
                       color: location === item.href ? 'white' : undefined,
-                      '--hover-color': RESTAURANT_CONFIG.theme.secondary
+                      '--hover-color': config.theme.secondary
                     } as React.CSSProperties & { '--hover-color': string }}
                     onMouseEnter={(e) => {
                       if (location !== item.href) {
-                        e.currentTarget.style.color = RESTAURANT_CONFIG.theme.secondary;
+                        e.currentTarget.style.color = config.theme.secondary;
                       }
                     }}
                     onMouseLeave={(e) => {

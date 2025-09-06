@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { DatabaseRestaurantSettings, RESTAURANT_CONFIG, convertDatabaseHoursToWeekSchedule } from '../config/restaurant-config';
+import { DatabaseRestaurantSettings, convertDatabaseHoursToWeekSchedule } from '../config/restaurant-config';
+import { useRestaurantConfig } from './use-restaurant-config';
 
 // Global state manager for restaurant settings
 class RestaurantSettingsManager {
@@ -87,6 +88,7 @@ class RestaurantSettingsManager {
 }
 
 export function useRestaurantSettings() {
+  const { config: baseConfig, loading: configLoading } = useRestaurantConfig();
   const [dbSettings, setDbSettings] = useState<DatabaseRestaurantSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -103,25 +105,25 @@ export function useRestaurantSettings() {
   }, []);
 
   // Create a config with merged hours from database
-  const config = {
-    ...RESTAURANT_CONFIG,
+  const config = baseConfig ? {
+    ...baseConfig,
     hours: dbSettings ? {
       general: convertDatabaseHoursToWeekSchedule(dbSettings.opening_hours),
       pickup: convertDatabaseHoursToWeekSchedule(dbSettings.pickup_hours),
       delivery: convertDatabaseHoursToWeekSchedule(dbSettings.delivery_hours),
-    } : RESTAURANT_CONFIG.hours,
+    } : baseConfig.hours,
     services: {
-      ...RESTAURANT_CONFIG.services,
+      ...baseConfig.services,
       lunchBuffetHours: dbSettings?.lunch_buffet_hours 
         ? convertDatabaseHoursToWeekSchedule(dbSettings.lunch_buffet_hours)
-        : RESTAURANT_CONFIG.services.lunchBuffetHours,
+        : baseConfig.services.lunchBuffetHours,
     }
-  };
+  } : null;
 
   return {
     config,
     dbSettings,
-    loading,
+    loading: loading || configLoading,
     error,
     isOpen: dbSettings?.is_open ?? true,
     specialMessage: dbSettings?.special_message,

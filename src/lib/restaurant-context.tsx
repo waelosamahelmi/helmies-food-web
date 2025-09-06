@@ -1,37 +1,29 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import { RESTAURANT_CONFIG, type RestaurantConfig } from "@/config/restaurant-config";
+import { type RestaurantConfig, PIZZERIA_ANTONIO_CONFIG } from "@/config/restaurant-config";
+import { useRestaurantConfig } from "@/hooks/use-restaurant-config";
 
 interface RestaurantContextType {
   config: RestaurantConfig;
-  updateConfig: (newConfig: RestaurantConfig) => void;
+  updateConfig: (updates: any) => Promise<void>;
+  loading: boolean;
+  error: string | null;
 }
 
 const RestaurantContext = createContext<RestaurantContextType | undefined>(undefined);
 
 export function RestaurantProvider({ children }: { children: React.ReactNode }) {
-  const [config, setConfig] = useState<RestaurantConfig>(() => {
-    // Always use the current RESTAURANT_CONFIG to ensure latest updates
-    // Comment out localStorage loading for now to force fresh config
-    // const savedConfig = localStorage.getItem('restaurant-config');
-    // if (savedConfig) {
-    //   try {
-    //     const parsed = JSON.parse(savedConfig);
-    //     // Merge with current config to ensure all new properties are included
-    //     return { ...RESTAURANT_CONFIG, ...parsed };
-    //   } catch (error) {
-    //     console.error('Failed to parse saved config:', error);
-    //   }
-    // }
-    return RESTAURANT_CONFIG;
-  });
-
-  const updateConfig = (newConfig: RestaurantConfig) => {
-    setConfig(newConfig);
-    localStorage.setItem('restaurant-config', JSON.stringify(newConfig));
-  };
+  const { config: dbConfig, loading, error, updateConfig: updateDbConfig } = useRestaurantConfig();
+  
+  // Use database config if available, otherwise fallback to hardcoded config
+  const config = dbConfig || PIZZERIA_ANTONIO_CONFIG;
 
   return (
-    <RestaurantContext.Provider value={{ config, updateConfig }}>
+    <RestaurantContext.Provider value={{ 
+      config, 
+      updateConfig: updateDbConfig, 
+      loading, 
+      error 
+    }}>
       {children}
     </RestaurantContext.Provider>
   );

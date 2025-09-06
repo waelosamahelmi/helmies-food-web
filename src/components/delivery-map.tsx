@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Navigation, Calculator, AlertCircle, Check } from "lucide-react";
 import { 
-  RESTAURANT_LOCATION, 
+  getRestaurantLocation, 
   calculateDistance, 
   calculateDeliveryFee, 
   getDeliveryZone,
@@ -14,6 +14,7 @@ import {
   reverseGeocode,
   isWithinFinland
 } from "@/lib/map-utils";
+import { useRestaurant } from "@/lib/restaurant-context";
 
 interface DeliveryMapProps {
   onDeliveryCalculated: (fee: number, distance: number, address: string) => void;
@@ -22,6 +23,7 @@ interface DeliveryMapProps {
 
 export function DeliveryMap({ onDeliveryCalculated, initialAddress = "" }: DeliveryMapProps) {
   const { t } = useLanguage();
+  const { config } = useRestaurant();
   const mapRef = useRef<HTMLDivElement>(null);
   const [address, setAddress] = useState(initialAddress);
   const [isLoading, setIsLoading] = useState(false);
@@ -43,7 +45,9 @@ export function DeliveryMap({ onDeliveryCalculated, initialAddress = "" }: Deliv
   // Initialize real OpenStreetMap
   useEffect(() => {
     if (!mapRef.current || mapInitialized) return;
+    if (!config) return; // Wait for config to load
 
+    const RESTAURANT_LOCATION = getRestaurantLocation(config);
     const mapContainer = mapRef.current;
     const mapId = `map-${Date.now()}`;
     
@@ -96,7 +100,7 @@ export function DeliveryMap({ onDeliveryCalculated, initialAddress = "" }: Deliv
     
     document.head.appendChild(scriptElement);
     setMapInitialized(true);
-  }, [mapInitialized, t]);
+  }, [mapInitialized, t, config]);
 
   // Address suggestions with debouncing
   useEffect(() => {
@@ -136,6 +140,9 @@ export function DeliveryMap({ onDeliveryCalculated, initialAddress = "" }: Deliv
   }, [showSuggestions]);
 
   const handleCalculateDeliveryForCoordinates = async (lat: number, lng: number, addressName: string) => {
+    if (!config) return;
+    
+    const RESTAURANT_LOCATION = getRestaurantLocation(config);
     setIsLoading(true);
     setError("");
     setShowSuggestions(false);
@@ -154,8 +161,8 @@ export function DeliveryMap({ onDeliveryCalculated, initialAddress = "" }: Deliv
         lng
       );
 
-      const fee = calculateDeliveryFee(distance);
-      const zone = getDeliveryZone(distance);
+      const fee = calculateDeliveryFee(distance, config);
+      const zone = getDeliveryZone(distance, config);
 
       if (fee === -1) {
         setError(t("Virhe toimitusmaksun laskennassa", "Error calculating delivery fee"));
@@ -182,6 +189,8 @@ export function DeliveryMap({ onDeliveryCalculated, initialAddress = "" }: Deliv
   };
 
   const handleCalculateDelivery = async () => {
+    if (!config) return;
+    
     if (!address.trim()) {
       setError(t("Syötä toimitusosoite", "Enter delivery address"));
       return;
@@ -206,6 +215,9 @@ export function DeliveryMap({ onDeliveryCalculated, initialAddress = "" }: Deliv
   };
 
   const updateMapWithRoute = (distance: number, customerAddress: string) => {
+    if (!config) return;
+    
+    const RESTAURANT_LOCATION = getRestaurantLocation(config);
     const leafletMap = (mapRef.current as any)?.leafletMap;
     if (!leafletMap || !deliveryInfo) return;
 

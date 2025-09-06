@@ -13,7 +13,7 @@ import { Badge } from './ui/badge';
 import { MapPin, Navigation, Calculator, AlertCircle, Check, Map } from 'lucide-react';
 import { useLanguage } from '../lib/language-context';
 import { 
-  RESTAURANT_LOCATION, 
+  getRestaurantLocation, 
   calculateDistance, 
   calculateDeliveryFee, 
   getDeliveryZone,
@@ -21,6 +21,7 @@ import {
   reverseGeocode,
   isWithinFinland
 } from '../lib/map-utils';
+import { useRestaurant } from '../lib/restaurant-context';
 
 interface AddressData {
   streetAddress: string;
@@ -64,6 +65,7 @@ export function StructuredAddressInput({
   initialAddress = ""
 }: StructuredAddressInputProps) {
   const { language, t } = useLanguage();
+  const { config } = useRestaurant();
   const mapRef = useRef<HTMLDivElement>(null);
   const searchTimeoutRef = useRef<NodeJS.Timeout>();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -99,8 +101,9 @@ export function StructuredAddressInput({
 
   // Initialize map
   useEffect(() => {
-    if (!mapRef.current || !showMap || mapInitialized) return;
+    if (!mapRef.current || !showMap || mapInitialized || !config) return;
 
+    const RESTAURANT_LOCATION = getRestaurantLocation(config);
     const mapContainer = mapRef.current;
     const mapId = `map-${Date.now()}`;
     
@@ -152,7 +155,7 @@ export function StructuredAddressInput({
     
     document.head.appendChild(scriptElement);
     setMapInitialized(true);
-  }, [showMap, mapInitialized]);
+  }, [showMap, mapInitialized, config]);
 
   const parseInitialAddress = (address: string) => {
     // Enhanced address parsing for Finnish addresses
@@ -358,6 +361,9 @@ export function StructuredAddressInput({
   };
 
   const handleCalculateDelivery = async (fullAddress?: string, lat?: number, lng?: number) => {
+    if (!config) return;
+    
+    const RESTAURANT_LOCATION = getRestaurantLocation(config);
     const addressToUse = fullAddress || addressData.fullAddress;
     
     if (!addressToUse.trim() || (!addressData.streetAddress && !addressData.city)) {
@@ -424,8 +430,8 @@ export function StructuredAddressInput({
         coordinates.lng
       );
       
-      const fee = calculateDeliveryFee(distance);
-      const zone = getDeliveryZone(distance);
+      const fee = calculateDeliveryFee(distance, config);
+      const zone = getDeliveryZone(distance, config);
       
       if (fee === -1) {
         setError(t("Alue ei ole toimitus-alueella", "Area is outside delivery zone"));
@@ -459,6 +465,9 @@ export function StructuredAddressInput({
   };
 
   const updateMapWithRoute = (info: typeof deliveryInfo, customerAddress: string) => {
+    if (!config) return;
+    
+    const RESTAURANT_LOCATION = getRestaurantLocation(config);
     if (!info) return;
     
     const leafletMap = (mapRef.current as any)?.leafletMap;
@@ -520,6 +529,8 @@ export function StructuredAddressInput({
   };
 
   const getCurrentLocation = () => {
+    if (!config) return;
+    
     if (!navigator.geolocation) {
       setError(t("Paikannusta ei tueta", "Geolocation not supported"));
       return;
@@ -568,6 +579,8 @@ export function StructuredAddressInput({
   };
 
   const calculateDeliveryFee = (distance: number): number => {
+    if (!config) return 3.00;
+    
     if (distance <= 10) {
       return Number((3.00).toFixed(2));
     } else if (distance <= 50) {

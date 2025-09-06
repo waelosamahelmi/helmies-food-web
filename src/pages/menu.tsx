@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useCategories, useMenuItems } from "@/hooks/use-menu";
 import { useLanguage } from "@/lib/language-context";
 import { useCart } from "@/lib/cart-context";
-import { RESTAURANT_CONFIG } from "@/config/restaurant-config";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -200,8 +199,8 @@ export default function Menu() {
                 variant={selectedCategory === "all" ? "default" : "outline"}
                 className="flex flex-col items-center p-4 h-auto space-y-2"
                 style={selectedCategory === "all" ? {
-                  backgroundColor: RESTAURANT_CONFIG.theme.secondary,
-                  borderColor: RESTAURANT_CONFIG.theme.secondary,
+                  backgroundColor: config?.theme.secondary,
+                  borderColor: config?.theme.secondary,
                   color: 'white'
                 } : {}}
                 onClick={() => setSelectedCategory("all")}
@@ -220,8 +219,8 @@ export default function Menu() {
                     variant={selectedCategory === category.id.toString() ? "default" : "outline"}
                     className="flex flex-col items-center p-4 h-auto space-y-2"
                     style={selectedCategory === category.id.toString() ? {
-                      backgroundColor: RESTAURANT_CONFIG.theme.secondary,
-                      borderColor: RESTAURANT_CONFIG.theme.secondary,
+                      backgroundColor: config?.theme.secondary,
+                      borderColor: config?.theme.secondary,
                       color: 'white'
                     } : {}}
                     onClick={() => setSelectedCategory(category.id.toString())}
@@ -302,7 +301,7 @@ export default function Menu() {
                   {item.offerPercentage && (
                     <Badge 
                       className="absolute top-3 right-3 text-white text-sm px-2 py-1"
-                      style={{ backgroundColor: RESTAURANT_CONFIG.theme.warning }}
+                      style={{ backgroundColor: config?.theme.warning }}
                     >
                       -{item.offerPercentage}%
                     </Badge>
@@ -345,7 +344,7 @@ export default function Menu() {
                         <>
                           <span 
                             className="text-lg font-bold"
-                            style={{ color: RESTAURANT_CONFIG.theme.warning }}
+                            style={{ color: config?.theme.warning }}
                           >
                             {formatPrice(item.offerPrice)}
                           </span>

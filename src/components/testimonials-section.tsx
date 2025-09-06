@@ -1,10 +1,23 @@
 import { useLanguage } from "@/lib/language-context";
-import { RESTAURANT_CONFIG } from "@/config/restaurant-config";
+import { useRestaurant } from "@/lib/restaurant-context";
 import { Card, CardContent } from "@/components/ui/card";
 import { Star, Quote } from "lucide-react";
 
 export function TestimonialsSection() {
   const { language, t } = useLanguage();
+  const { config } = useRestaurant();
+
+  if (!config) {
+    return (
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <p>Loading testimonials...</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   const testimonials = [
     {
@@ -78,7 +91,7 @@ export function TestimonialsSection() {
                 <div className="flex items-start justify-between mb-4">
                   <Quote 
                     className="w-8 h-8 flex-shrink-0" 
-                    style={{ color: RESTAURANT_CONFIG.theme.secondary }}
+                    style={{ color: config.theme.secondary }}
                   />
                   <div className="flex space-x-1">
                     {renderStars(testimonial.rating)}
@@ -107,16 +120,16 @@ export function TestimonialsSection() {
             href="contact"
             className="inline-flex items-center px-6 py-3 border transition-colors rounded-lg font-medium"
             style={{
-              borderColor: RESTAURANT_CONFIG.theme.secondary,
-              color: RESTAURANT_CONFIG.theme.secondary,
+              borderColor: config.theme.secondary,
+              color: config.theme.secondary,
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = RESTAURANT_CONFIG.theme.secondary;
+              e.currentTarget.style.backgroundColor = config.theme.secondary;
               e.currentTarget.style.color = 'white';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.backgroundColor = 'transparent';
-              e.currentTarget.style.color = RESTAURANT_CONFIG.theme.secondary;
+              e.currentTarget.style.color = config.theme.secondary;
             }}
           >
             {t("Jätä arvostelu", "Leave a Review")}
