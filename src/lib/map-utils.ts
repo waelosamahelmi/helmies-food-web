@@ -24,7 +24,7 @@ export function calculateDistance(lat1: number, lng1: number, lat2: number, lng2
 
 // Calculate delivery fee based on distance
 export function calculateDeliveryFee(distance: number, config: RestaurantConfig): number {
-  if (!distance || isNaN(distance)) return RESTAURANT_CONFIG.delivery.zones[0].fee;
+  if (!distance || isNaN(distance)) return config.delivery.zones[0].fee;
   
   for (const zone of config.delivery.zones) {
     if (distance <= zone.maxDistance) {

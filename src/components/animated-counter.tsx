@@ -26,14 +26,13 @@ export function AnimatedCounter({
 
     const element = elementRef.current;
     
-    const animation = gsap.fromTo(
-      { value: 0 },
-      {
+    const obj = { value: 0 };
+    const animation = gsap.to(obj, {
         value: end,
         duration,
         ease: "power2.out",
         onUpdate: function() {
-          setCount(Math.floor(this.targets()[0].value));
+          setCount(Math.floor(obj.value));
         },
         scrollTrigger: {
           trigger: element,

@@ -154,9 +154,10 @@ export function DeliveryMap({ onDeliveryCalculated, initialAddress = "" }: Deliv
         return;
       }
 
+      const restaurantLocation = getRestaurantLocation(config);
       const distance = calculateDistance(
-        RESTAURANT_LOCATION.lat,
-        RESTAURANT_LOCATION.lng,
+        restaurantLocation.lat,
+        restaurantLocation.lng,
         lat,
         lng
       );
@@ -292,15 +293,16 @@ export function DeliveryMap({ onDeliveryCalculated, initialAddress = "" }: Deliv
             setAddress(addressFromCoords);
           }
           
+          const restaurantLocation = getRestaurantLocation(config);
           const distance = calculateDistance(
-            RESTAURANT_LOCATION.lat,
-            RESTAURANT_LOCATION.lng,
+            restaurantLocation.lat,
+            restaurantLocation.lng,
             latitude,
             longitude
           );
 
-          const fee = calculateDeliveryFee(distance);
-          const zone = getDeliveryZone(distance);
+          const fee = calculateDeliveryFee(distance, config);
+          const zone = getDeliveryZone(distance, config);
 
           if (fee === -1) {
             setError(t("Virhe toimitusmaksun laskennassa", "Error calculating delivery fee"));
