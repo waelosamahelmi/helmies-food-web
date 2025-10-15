@@ -99,6 +99,131 @@ export function StructuredAddressInput({
     }
   }, [initialAddress]);
 
+  // Calculate delivery when all address fields are complete (debounced)
+  const handleCalculateDelivery = useCallback(async (fullAddress?: string, lat?: number, lng?: number) => {
+    if (!config) return;
+    
+    const RESTAURANT_LOCATION = getRestaurantLocation(config);
+    const addressToUse = fullAddress || addressData.fullAddress;
+    
+    if (!addressToUse.trim() || (!addressData.streetAddress && !addressData.city)) {
+      setError(t("Täytä vähintään katuosoite ja kaupunki", "Fill in at least street address and city"));
+      return;
+    }
+
+    setIsLoading(true);
+    setError("");
+
+    try {
+      let coordinates = { lat, lng };
+      
+      if (!coordinates.lat || !coordinates.lng) {
+        // Geocode the address using Nominatim
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/search?` +
+          `format=json&q=${encodeURIComponent(addressToUse)}` +
+          `&countrycodes=fi&limit=1&addressdetails=1`,
+          {
+            headers: {
+              'Accept': 'application/json',
+              'User-Agent': 'AntonioRestaurant/1.0'
+            }
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error('Geocoding request failed');
+        }
+
+        const data = await response.json();
+        
+        if (!data || data.length === 0) {
+          throw new Error('Address not found');
+        }
+
+        coordinates = {
+          lat: parseFloat(data[0].lat),
+          lng: parseFloat(data[0].lon)
+        };
+
+        if (typeof coordinates.lat !== 'number' || typeof coordinates.lng !== 'number' || 
+            isNaN(coordinates.lat) || isNaN(coordinates.lng)) {
+          throw new Error('Invalid coordinates received');
+        }
+      }
+
+      // Ensure coordinates are valid numbers
+      if (typeof coordinates.lat !== 'number' || typeof coordinates.lng !== 'number') {
+        throw new Error('Invalid coordinates');
+      }
+
+      if (!isWithinFinland(coordinates.lat, coordinates.lng)) {
+        setError(t("Toimitus vain Suomessa", "Delivery only in Finland"));
+        return;
+      }
+      
+      // Calculate delivery fee using map utils
+      const distance = calculateDistance(
+        RESTAURANT_LOCATION.lat,
+        RESTAURANT_LOCATION.lng,
+        coordinates.lat,
+        coordinates.lng
+      );
+      
+      const fee = calculateDeliveryFee(distance);
+      const zone = getDeliveryZone(distance, config);
+      
+      if (fee === -1) {
+        setError(t("Alue ei ole toimitus-alueella", "Area is outside delivery zone"));
+        return;
+      }
+
+      const info = {
+        distance: Math.round(distance * 10) / 10,
+        fee: Number(fee.toFixed(2)), // Ensure fee is formatted with 2 decimal places
+        zone: zone.description,
+        coordinates: { lat: coordinates.lat, lng: coordinates.lng }
+      };
+
+      setDeliveryInfo(info);
+      onDeliveryCalculated(Number(fee.toFixed(2)), info.distance, addressToUse);
+      
+      // Show map and update with route
+      if (!showMap) {
+        setShowMap(true);
+        setTimeout(() => updateMapWithRoute(info, addressToUse), 1000);
+      } else {
+        updateMapWithRoute(info, addressToUse);
+      }
+      
+    } catch (error) {
+      console.error('Delivery calculation error:', error);
+      setError(t("Virhe laskettaessa toimitusta. Tarkista osoite.", "Error calculating delivery. Check the address."));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [config, addressData.fullAddress, addressData.streetAddress, addressData.city, t, onDeliveryCalculated, showMap, setError, setIsLoading, setDeliveryInfo, setShowMap]);
+
+  useEffect(() => {
+    if (addressData.streetAddress && addressData.postalCode && addressData.city && addressData.fullAddress) {
+      // Clear any existing timeout
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+      
+      // Debounce delivery calculation
+      searchTimeoutRef.current = setTimeout(() => {
+        handleCalculateDelivery(addressData.fullAddress);
+      }, 1000); // Wait 1 second after all fields are complete
+    }
+    
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [addressData.streetAddress, addressData.postalCode, addressData.city, addressData.fullAddress, handleCalculateDelivery]);
+
   // Initialize map
   useEffect(() => {
     if (!mapRef.current || !showMap || mapInitialized || !config) return;
@@ -250,12 +375,18 @@ export function StructuredAddressInput({
   }, [addressData, onAddressChange, error]);
 
   const handleStreetAddressChange = (value: string) => {
-    console.log('Street address input value:', value);
     const updated = updateFullAddress({ streetAddress: value });
     
-    // Fetch suggestions when typing street address
+    // Clear any existing timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    
+    // Debounce address suggestions to avoid excessive API calls
     if (value.length > 3) {
-      fetchAddressSuggestions(updated.fullAddress);
+      searchTimeoutRef.current = setTimeout(() => {
+        fetchAddressSuggestions(updated.fullAddress);
+      }, 500); // Wait 500ms after user stops typing
     } else {
       setSuggestions([]);
       setShowSuggestions(false);
@@ -358,110 +489,6 @@ export function StructuredAddressInput({
     // Auto-calculate delivery if we have a complete address
     if (streetAddress && city && postalCode) {
       handleCalculateDelivery(fullAddress, parseFloat(suggestion.lat), parseFloat(suggestion.lon));
-    }
-  };
-
-  const handleCalculateDelivery = async (fullAddress?: string, lat?: number, lng?: number) => {
-    if (!config) return;
-    
-    const RESTAURANT_LOCATION = getRestaurantLocation(config);
-    const addressToUse = fullAddress || addressData.fullAddress;
-    
-    if (!addressToUse.trim() || (!addressData.streetAddress && !addressData.city)) {
-      setError(t("Täytä vähintään katuosoite ja kaupunki", "Fill in at least street address and city"));
-      return;
-    }
-
-    setIsLoading(true);
-    setError("");
-
-    try {
-      let coordinates = { lat, lng };
-      
-      if (!coordinates.lat || !coordinates.lng) {
-        // Geocode the address using Nominatim
-        const response = await fetch(
-          `https://nominatim.openstreetmap.org/search?` +
-          `format=json&q=${encodeURIComponent(addressToUse)}` +
-          `&countrycodes=fi&limit=1&addressdetails=1`,
-          {
-            headers: {
-              'Accept': 'application/json',
-              'User-Agent': 'AntonioRestaurant/1.0'
-            }
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error('Geocoding request failed');
-        }
-
-        const data = await response.json();
-        
-        if (!data || data.length === 0) {
-          throw new Error('Address not found');
-        }
-
-        coordinates = {
-          lat: parseFloat(data[0].lat),
-          lng: parseFloat(data[0].lon)
-        };
-
-        if (typeof coordinates.lat !== 'number' || typeof coordinates.lng !== 'number' || 
-            isNaN(coordinates.lat) || isNaN(coordinates.lng)) {
-          throw new Error('Invalid coordinates received');
-        }
-      }
-
-      // Ensure coordinates are valid numbers
-      if (typeof coordinates.lat !== 'number' || typeof coordinates.lng !== 'number') {
-        throw new Error('Invalid coordinates');
-      }
-
-      if (!isWithinFinland(coordinates.lat, coordinates.lng)) {
-        setError(t("Toimitus vain Suomessa", "Delivery only in Finland"));
-        return;
-      }
-      
-      // Calculate delivery fee using map utils
-      const distance = calculateDistance(
-        RESTAURANT_LOCATION.lat,
-        RESTAURANT_LOCATION.lng,
-        coordinates.lat,
-        coordinates.lng
-      );
-      
-      const fee = calculateDeliveryFee(distance, config);
-      const zone = getDeliveryZone(distance, config);
-      
-      if (fee === -1) {
-        setError(t("Alue ei ole toimitus-alueella", "Area is outside delivery zone"));
-        return;
-      }
-
-      const info = {
-        distance: Math.round(distance * 10) / 10,
-        fee: Number(fee.toFixed(2)), // Ensure fee is formatted with 2 decimal places
-        zone: zone.description,
-        coordinates: { lat: coordinates.lat, lng: coordinates.lng }
-      };
-
-      setDeliveryInfo(info);
-      onDeliveryCalculated(Number(fee.toFixed(2)), info.distance, addressToUse);
-      
-      // Show map and update with route
-      if (!showMap) {
-        setShowMap(true);
-        setTimeout(() => updateMapWithRoute(info, addressToUse), 1000);
-      } else {
-        updateMapWithRoute(info, addressToUse);
-      }
-      
-    } catch (error) {
-      console.error('Delivery calculation error:', error);
-      setError(t("Virhe laskettaessa toimitusta. Tarkista osoite.", "Error calculating delivery. Check the address."));
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -627,12 +654,6 @@ export function StructuredAddressInput({
                 id="streetAddress"
                 value={addressData.streetAddress}
                 onChange={(e) => handleStreetAddressChange(e.target.value)}
-                onKeyDown={(e) => {
-                  console.log('Key pressed:', e.key, 'Code:', e.code, 'Value before:', e.currentTarget.value);
-                  if (e.key === ' ') {
-                    console.log('Space key detected');
-                  }
-                }}
                 onFocus={() => addressData.streetAddress.length > 3 && setShowSuggestions(true)}
                 placeholder={t("Esim. Keskuskatu 15 A 2", "e.g. Main Street 15 A 2")}
                 required
