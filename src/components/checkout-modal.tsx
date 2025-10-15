@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useLanguage } from "@/lib/language-context";
 import { useCart } from "@/lib/cart-context";
 import { useCreateOrder } from "@/hooks/use-orders";
+import { useRestaurantSettings } from "@/hooks/use-restaurant-settings";
 import { useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,7 @@ export function CheckoutModal({ isOpen, onClose, onBack }: CheckoutModalProps) {
   const { language, t } = useLanguage();
   const { items, totalPrice, clearCart } = useCart();
   const { toast } = useToast();
+  const { config } = useRestaurantSettings();
   const createOrder = useCreateOrder();
   
   // Check if ordering is available
@@ -104,7 +106,7 @@ export function CheckoutModal({ isOpen, onClose, onBack }: CheckoutModalProps) {
     e.preventDefault();
     
     // Check business hours before processing order
-    if (!isOnlineOrderingAvailable()) {
+    if (!config || !isOnlineOrderingAvailable(config)) {
       toast({
         title: t("Tilaukset suljettu", "Orders closed"),
         description: t("Verkkokauppa on suljettu", "Online ordering is closed"),
@@ -115,7 +117,7 @@ export function CheckoutModal({ isOpen, onClose, onBack }: CheckoutModalProps) {
     }
 
     // Check specific service availability
-    if (formData.orderType === "delivery" && !isDeliveryAvailable()) {
+    if (formData.orderType === "delivery" && !isDeliveryAvailable(config)) {
       toast({
         title: t("Kotiinkuljetus suljettu", "Delivery closed"),
         description: t("Kotiinkuljetus ei ole avoinna", "Delivery service is not available"),
@@ -124,7 +126,7 @@ export function CheckoutModal({ isOpen, onClose, onBack }: CheckoutModalProps) {
       return;
     }
 
-    if (formData.orderType === "pickup" && !isPickupAvailable()) {
+    if (formData.orderType === "pickup" && !isPickupAvailable(config)) {
       toast({
         title: t("Nouto suljettu", "Pickup closed"),
         description: t("Noutopalvelu ei ole avoinna", "Pickup service is not available"),
@@ -212,17 +214,17 @@ export function CheckoutModal({ isOpen, onClose, onBack }: CheckoutModalProps) {
   };
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && config) {
       const checkAvailability = () => {
-        setIsOrderingAvailable(isOnlineOrderingAvailable());
-        setIsPickupOpen(isPickupAvailable());
-        setIsDeliveryOpen(isDeliveryAvailable());
+        setIsOrderingAvailable(isOnlineOrderingAvailable(config));
+        setIsPickupOpen(isPickupAvailable(config));
+        setIsDeliveryOpen(isDeliveryAvailable(config));
       };
       
       checkAvailability();
       
       // If not available, close modal
-      if (!isOnlineOrderingAvailable()) {
+      if (!isOnlineOrderingAvailable(config)) {
         onClose();
         toast({
           title: t("Tilaukset suljettu", "Orders closed"),
@@ -231,7 +233,7 @@ export function CheckoutModal({ isOpen, onClose, onBack }: CheckoutModalProps) {
         });
       }
     }
-  }, [isOpen, onClose, toast, t]);
+  }, [isOpen, config, onClose, toast, t]);
 
   return (
     <>

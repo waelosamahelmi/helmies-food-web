@@ -17,7 +17,12 @@ export function RestaurantStatusHeader() {
     return () => clearInterval(timer);
   }, []);
 
-  const status = getRestaurantStatus(currentTime, config);
+  // Don't render if no config available
+  if (!config) {
+    return null;
+  }
+
+  const status = getRestaurantStatus(config, currentTime);
   const { isOpen: restaurantOpen, isOrderingOpen, nextOpening, nextOrdering } = status;
 
   // Use database override if available, otherwise use calculated status

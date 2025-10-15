@@ -61,7 +61,7 @@ function getCurrentFinnishTime(): Date {
 /**
  * Check if restaurant is open for general operations
  */
-export function isRestaurantOpen(customTime?: Date, config: RestaurantConfig): boolean {
+export function isRestaurantOpen(config: RestaurantConfig, customTime?: Date): boolean {
   if (!config) {
     console.warn('⚠️ No restaurant config provided to isRestaurantOpen');
     return false;
@@ -90,21 +90,34 @@ export function isRestaurantOpen(customTime?: Date, config: RestaurantConfig): b
   const openMinutes = timeToMinutes(todayHours.openTime);
   const closeMinutes = timeToMinutes(todayHours.closeTime);
 
+  // Handle overnight hours (when close time is next day)
+  const isOvernight = closeMinutes < openMinutes;
+  let isOpen;
+  
+  if (isOvernight) {
+    // Restaurant is open from openTime until midnight, then from midnight until closeTime next day
+    isOpen = currentMinutes >= openMinutes || currentMinutes <= closeMinutes;
+  } else {
+    // Normal same-day hours
+    isOpen = currentMinutes >= openMinutes && currentMinutes <= closeMinutes;
+  }
+
   console.log('Business Hours Check:', {
     todayHours,
     openMinutes,
     closeMinutes,
     currentMinutes,
-    isOpen: currentMinutes >= openMinutes && currentMinutes <= closeMinutes
+    isOvernight,
+    isOpen
   });
 
-  return currentMinutes >= openMinutes && currentMinutes <= closeMinutes;
+  return isOpen;
 }
 
 /**
  * Check if pickup service is available
  */
-export function isPickupAvailable(customTime?: Date, config: RestaurantConfig): boolean {
+export function isPickupAvailable(config: RestaurantConfig, customTime?: Date): boolean {
   if (!config) return false;
   
   const now = customTime || getCurrentFinnishTime();
@@ -121,13 +134,22 @@ export function isPickupAvailable(customTime?: Date, config: RestaurantConfig): 
   const openMinutes = timeToMinutes(todayHours.openTime);
   const closeMinutes = timeToMinutes(todayHours.closeTime);
 
-  return currentMinutes >= openMinutes && currentMinutes <= closeMinutes;
+  // Handle overnight hours (when close time is next day)
+  const isOvernight = closeMinutes < openMinutes;
+  
+  if (isOvernight) {
+    // Restaurant is open from openTime until midnight, then from midnight until closeTime next day
+    return currentMinutes >= openMinutes || currentMinutes <= closeMinutes;
+  } else {
+    // Normal same-day hours
+    return currentMinutes >= openMinutes && currentMinutes <= closeMinutes;
+  }
 }
 
 /**
  * Check if delivery service is available
  */
-export function isDeliveryAvailable(customTime?: Date, config: RestaurantConfig): boolean {
+export function isDeliveryAvailable(config: RestaurantConfig, customTime?: Date): boolean {
   if (!config) return false;
   
   const now = customTime || getCurrentFinnishTime();
@@ -144,21 +166,30 @@ export function isDeliveryAvailable(customTime?: Date, config: RestaurantConfig)
   const openMinutes = timeToMinutes(todayHours.openTime);
   const closeMinutes = timeToMinutes(todayHours.closeTime);
 
-  return currentMinutes >= openMinutes && currentMinutes <= closeMinutes;
+  // Handle overnight hours (when close time is next day)
+  const isOvernight = closeMinutes < openMinutes;
+  
+  if (isOvernight) {
+    // Restaurant is open from openTime until midnight, then from midnight until closeTime next day
+    return currentMinutes >= openMinutes || currentMinutes <= closeMinutes;
+  } else {
+    // Normal same-day hours
+    return currentMinutes >= openMinutes && currentMinutes <= closeMinutes;
+  }
 }
 
 /**
  * Check if online ordering is available (either pickup or delivery)
  */
-export function isOnlineOrderingAvailable(customTime?: Date, config: RestaurantConfig): boolean {
+export function isOnlineOrderingAvailable(config: RestaurantConfig, customTime?: Date): boolean {
   if (!config) return false;
-  return isPickupAvailable(customTime, config) || isDeliveryAvailable(customTime, config);
+  return isPickupAvailable(config, customTime) || isDeliveryAvailable(config, customTime);
 }
 
 /**
  * Get next opening time for general restaurant
  */
-export function getNextOpeningTime(customTime?: Date, config: RestaurantConfig): { day: string; time: string } | null {
+export function getNextOpeningTime(config: RestaurantConfig, customTime?: Date): { day: string; time: string } | null {
   if (!config) return null;
   
   const now = customTime || getCurrentFinnishTime();
@@ -200,7 +231,7 @@ export function getNextOpeningTime(customTime?: Date, config: RestaurantConfig):
 /**
  * Get next opening time for online ordering
  */
-export function getNextOrderingTime(customTime?: Date, config: RestaurantConfig): { day: string; time: string } | null {
+export function getNextOrderingTime(config: RestaurantConfig, customTime?: Date): { day: string; time: string } | null {
   if (!config) return null;
   
   const now = customTime || getCurrentFinnishTime();
@@ -258,7 +289,7 @@ export function getNextOrderingTime(customTime?: Date, config: RestaurantConfig)
 /**
  * Get current restaurant status information
  */
-export function getRestaurantStatus(customTime?: Date, config: RestaurantConfig) {
+export function getRestaurantStatus(config: RestaurantConfig, customTime?: Date) {
   if (!config) {
     return {
       isOpen: false,
@@ -270,13 +301,13 @@ export function getRestaurantStatus(customTime?: Date, config: RestaurantConfig)
     };
   }
   
-  const isOpen = isRestaurantOpen(customTime, config);
-  const isOrderingOpen = isOnlineOrderingAvailable(customTime, config);
-  const isPickupOpen = isPickupAvailable(customTime, config);
-  const isDeliveryOpen = isDeliveryAvailable(customTime, config);
+  const isOpen = isRestaurantOpen(config, customTime);
+  const isOrderingOpen = isOnlineOrderingAvailable(config, customTime);
+  const isPickupOpen = isPickupAvailable(config, customTime);
+  const isDeliveryOpen = isDeliveryAvailable(config, customTime);
   
-  const nextOpening = getNextOpeningTime(customTime, config);
-  const nextOrdering = getNextOrderingTime(customTime, config);
+  const nextOpening = getNextOpeningTime(config, customTime);
+  const nextOrdering = getNextOrderingTime(config, customTime);
 
   return {
     isOpen,

@@ -79,12 +79,14 @@ export default function Home() {
                   <p className="text-gray-600 dark:text-gray-400">
                     {t("Tuoreita pizzoja ja maukkaita kebabeja. Tilaa verkossa tai soita.", "Fresh pizzas and delicious kebabs. Order online or call.")}
                   </p>
-                  <div 
-                    className="mt-4 text-sm font-medium"
-                    style={{ color: RESTAURANT_CONFIG.theme.secondary }}
-                  >
-                    {t("Alkaen 10,40€", "From 10,40€")}
-                  </div>
+                  {config?.theme?.secondary && (
+                    <div 
+                      className="mt-4 text-sm font-medium"
+                      style={{ color: config.theme.secondary }}
+                    >
+                      {t("Alkaen 10,40€", "From 10,40€")}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </Link>

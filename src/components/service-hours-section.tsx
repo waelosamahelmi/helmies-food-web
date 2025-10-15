@@ -14,8 +14,13 @@ export function ServiceHoursSection() {
   const { config, isOpen: dbIsOpen } = useRestaurantSettings();
 
   // Calculate if restaurant is open based on hours, but override with database setting if available
-  const isOpenByHours = isRestaurantOpen(undefined, config);
+  const isOpenByHours = config ? isRestaurantOpen(config) : false;
   const effectiveIsOpen = dbIsOpen !== undefined ? dbIsOpen : isOpenByHours;
+
+  // Don't render if no config available
+  if (!config || !config.services) {
+    return null;
+  }
 
   return (
     <section className="py-16 bg-gray-50 dark:bg-stone-900">
@@ -83,7 +88,7 @@ export function ServiceHoursSection() {
           )}
 
           {/* Lunch Buffet */}
-          {config.services.hasLunchBuffet && config.services.lunchBuffetHours && (
+          {config.services.hasLunchBuffet && config.services.lunchBuffetHours && config.services.lunchBuffetHours.monday && (
             <Card className="hover:shadow-lg transition-shadow md:col-span-2 lg:col-span-1">
               <CardContent className="p-6">
                 <div className="flex items-center space-x-3 mb-4">

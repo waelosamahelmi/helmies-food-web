@@ -102,6 +102,7 @@ export interface RestaurantConfig {
   
   // Theme & Branding
   theme: {
+    // Legacy colors (kept for backward compatibility)
     primary: string;
     secondary: string;
     accent: string;
@@ -110,7 +111,31 @@ export interface RestaurantConfig {
     error: string;
     background: string;
     foreground: string;
-    // Dark mode colors
+    
+    // Complete light mode theme (optional for backward compatibility)
+    light?: {
+      background: string;
+      foreground: string;
+      card: string;
+      cardForeground: string;
+      popover: string;
+      popoverForeground: string;
+      primary: string;
+      primaryForeground: string;
+      secondary: string;
+      secondaryForeground: string;
+      muted: string;
+      mutedForeground: string;
+      accent: string;
+      accentForeground: string;
+      destructive: string;
+      destructiveForeground: string;
+      border: string;
+      input: string;
+      ring: string;
+    };
+    
+    // Dark mode colors (optional for backward compatibility)
     dark?: {
       background: string;
       foreground: string;
@@ -317,6 +342,30 @@ export const PIZZERIA_ANTONIO_CONFIG: RestaurantConfig = {
     error: "#dc2626", // red-600
     background: "#ffffff",
     foreground: "#1f2937", // gray-800
+    
+    // Light mode colors - warm, cozy restaurant theme
+    light: {
+      background: "hsl(0, 0%, 100%)", // white
+      foreground: "hsl(222.2, 84%, 4.9%)", // dark text
+      card: "hsl(0, 0%, 100%)", // white cards
+      cardForeground: "hsl(222.2, 84%, 4.9%)",
+      popover: "hsl(0, 0%, 100%)",
+      popoverForeground: "hsl(222.2, 84%, 4.9%)",
+      primary: "#8B4513", // Saddle brown
+      primaryForeground: "hsl(0, 0%, 98%)",
+      secondary: "hsl(210, 40%, 96%)", // light gray secondary
+      secondaryForeground: "hsl(222.2, 84%, 4.9%)",
+      muted: "hsl(210, 40%, 96%)", // light gray muted
+      mutedForeground: "hsl(215.4, 16.3%, 46.9%)",
+      accent: "#FF8C00", // Dark orange accent
+      accentForeground: "hsl(0, 0%, 98%)",
+      destructive: "hsl(0, 84.2%, 60.2%)",
+      destructiveForeground: "hsl(0, 0%, 98%)",
+      border: "hsl(214.3, 31.8%, 91.4%)", // light borders
+      input: "hsl(214.3, 31.8%, 91.4%)", // light inputs
+      ring: "#8B4513", // brown ring
+    },
+    
     // Dark mode colors - very dark brown theme
     dark: {
       background: "hsl(30, 10%, 8%)", // Very dark brown

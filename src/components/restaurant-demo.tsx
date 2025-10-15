@@ -51,6 +51,11 @@ export function RestaurantDemo() {
     );
   }
 
+  // Don't render if no config available
+  if (!config) {
+    return null;
+  }
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="text-center space-y-2">

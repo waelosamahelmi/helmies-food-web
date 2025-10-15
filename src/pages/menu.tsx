@@ -49,17 +49,19 @@ export default function Menu() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [showClosedModal, setShowClosedModal] = useState(false);
-  const [isOrderingAvailable, setIsOrderingAvailable] = useState(true);
+  const [isOrderingAvailable, setIsOrderingAvailable] = useState(true); // Start optimistic
 
   // Check ordering availability
   useEffect(() => {
     const checkOrderingStatus = () => {
-      const available = isOnlineOrderingAvailable(undefined, config);
-      setIsOrderingAvailable(available);
-      
-      // Show closed modal if user tries to access menu when closed
-      if (!available && !showClosedModal) {
-        setShowClosedModal(true);
+      if (config) {
+        const available = isOnlineOrderingAvailable(config);
+        setIsOrderingAvailable(available);
+        
+        // Show closed modal only if we have config and it's definitely closed
+        if (!available && !showClosedModal) {
+          setShowClosedModal(true);
+        }
       }
     };
 

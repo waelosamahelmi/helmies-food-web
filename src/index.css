@@ -6,6 +6,7 @@
 @tailwind utilities;
 
 :root {
+  /* Default fallback colors - will be overridden by restaurant theme */
   --background: hsl(0, 0%, 100%);
   --foreground: hsl(240, 10%, 3.9%);
   --muted: hsl(240, 4.8%, 95.9%);
@@ -27,37 +28,21 @@
   --ring: hsl(240, 5.9%, 10%);
   --radius: 0.5rem;
   
-  /* Dynamic restaurant colors - will be updated by theme */
-  --restaurant-primary: hsl(0, 72.2%, 50.6%);
-  --restaurant-secondary: hsl(45, 93%, 47%);
-  --restaurant-accent: hsl(158, 64%, 52%);
-  --restaurant-success: hsl(158, 64%, 52%);
-  --restaurant-warning: hsl(45, 93%, 47%);
-  --restaurant-error: hsl(0, 72.2%, 50.6%);
+  /* Legacy restaurant colors (for backward compatibility) */
+  --color-primary: hsl(0, 72.2%, 50.6%);
+  --color-secondary: hsl(45, 93%, 47%);
+  --color-accent: hsl(158, 64%, 52%);
+  --color-success: hsl(158, 64%, 52%);
+  --color-warning: hsl(45, 93%, 47%);
+  --color-error: hsl(0, 72.2%, 50.6%);
+  --color-background: hsl(0, 0%, 100%);
+  --color-foreground: hsl(240, 10%, 3.9%);
 }
 
-.dark {
-  --background: hsl(30, 10%, 8%);
-  --foreground: hsl(0, 0%, 98%);
-  --muted: hsl(30, 5%, 15%);
-  --muted-foreground: hsl(240, 5%, 64.9%);
-  --popover: hsl(30, 10%, 8%);
-  --popover-foreground: hsl(0, 0%, 98%);
-  --card: hsl(30, 8%, 12%);
-  --card-foreground: hsl(0, 0%, 98%);
-  --border: hsl(30, 5%, 18%);
-  --input: hsl(30, 5%, 18%);
-  --primary: hsl(0, 72.2%, 50.6%);
-  --primary-foreground: hsl(0, 0%, 98%);
-  --secondary: hsl(30, 5%, 18%);
-  --secondary-foreground: hsl(0, 0%, 98%);
-  --accent: hsl(30, 5%, 18%);
-  --accent-foreground: hsl(0, 0%, 98%);
-  --destructive: hsl(0, 62.8%, 30.6%);
-  --destructive-foreground: hsl(0, 0%, 98%);
-  --ring: hsl(240, 4.9%, 83.9%);
-  --radius: 0.5rem;
-}
+/* 
+ * Note: Theme colors are dynamically set by JavaScript based on restaurant configuration
+ * No static .dark class needed - all theming is handled by the theme context
+ */
 
 @layer base {
   * {

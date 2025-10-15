@@ -51,6 +51,8 @@ class RestaurantSettingsManager {
 
       if (!error && data) {
         this.currentSettings = data;
+      } else {
+        console.warn('Failed to load database settings:', error);
       }
       
       this.isInitialized = true;
@@ -117,7 +119,10 @@ export function useRestaurantSettings() {
       lunchBuffetHours: dbSettings?.lunch_buffet_hours 
         ? convertDatabaseHoursToWeekSchedule(dbSettings.lunch_buffet_hours)
         : baseConfig.services.lunchBuffetHours,
-    }
+    },
+    // Merge theme: use database theme from baseConfig (which comes from useRestaurantConfig)
+    // The baseConfig already contains the database theme if available
+    theme: baseConfig.theme
   } : null;
 
   return {

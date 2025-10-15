@@ -250,6 +250,7 @@ export function StructuredAddressInput({
   }, [addressData, onAddressChange, error]);
 
   const handleStreetAddressChange = (value: string) => {
+    console.log('Street address input value:', value);
     const updated = updateFullAddress({ streetAddress: value });
     
     // Fetch suggestions when typing street address
@@ -626,6 +627,12 @@ export function StructuredAddressInput({
                 id="streetAddress"
                 value={addressData.streetAddress}
                 onChange={(e) => handleStreetAddressChange(e.target.value)}
+                onKeyDown={(e) => {
+                  console.log('Key pressed:', e.key, 'Code:', e.code, 'Value before:', e.currentTarget.value);
+                  if (e.key === ' ') {
+                    console.log('Space key detected');
+                  }
+                }}
                 onFocus={() => addressData.streetAddress.length > 3 && setShowSuggestions(true)}
                 placeholder={t("Esim. Keskuskatu 15 A 2", "e.g. Main Street 15 A 2")}
                 required

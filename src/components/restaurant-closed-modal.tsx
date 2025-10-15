@@ -1,4 +1,5 @@
 import { useLanguage } from "@/lib/language-context";
+import { useRestaurantSettings } from "@/hooks/use-restaurant-settings";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Clock, Store, Phone, MapPin } from "lucide-react";
@@ -11,7 +12,8 @@ interface RestaurantClosedModalProps {
 
 export function RestaurantClosedModal({ isOpen, onClose }: RestaurantClosedModalProps) {
   const { t } = useLanguage();
-  const status = getRestaurantStatus();
+  const { config } = useRestaurantSettings();
+  const status = config ? getRestaurantStatus(config) : null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -39,7 +41,7 @@ export function RestaurantClosedModal({ isOpen, onClose }: RestaurantClosedModal
             </p>
           </div>
 
-          {status.nextOrdering && (
+          {status?.nextOrdering && (
             <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg">
               <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
                 {t("Seuraava tilausaika", "Next ordering time")}
