@@ -74,6 +74,14 @@ export function Header({ onCartClick }: HeaderProps) {
               >
                 {t("Yhteystiedot", "Contact")}
               </a>
+              <a
+                href="https://admin.pizzeriaantonio.fi"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium text-sm"
+              >
+                {t("Kirjaudu", "Login")}
+              </a>
             </nav>
 
             {/* Desktop Actions */}
@@ -210,6 +218,15 @@ export function Header({ onCartClick }: HeaderProps) {
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {t("Yhteystiedot", "Contact")}
+                </a>
+                <a
+                  href="https://admin.pizzeriaantonio.fi"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium py-2 text-sm border-t border-gray-200 dark:border-gray-700 pt-4 mt-2"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {t("Kirjaudu hallintaan", "Admin Login")}
                 </a>
               </div>
 

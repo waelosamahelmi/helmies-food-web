@@ -15,7 +15,7 @@ import { useLanguage } from '../lib/language-context';
 import { 
   getRestaurantLocation, 
   calculateDistance, 
-  calculateDeliveryFee, 
+  calculateDeliveryFee as calculateFeeFromConfig, 
   getDeliveryZone,
   geocodeAddress,
   reverseGeocode,
@@ -102,12 +102,12 @@ export function StructuredAddressInput({
   // Calculate delivery when all address fields are complete (debounced)
   const handleCalculateDelivery = useCallback(async (fullAddress?: string, lat?: number, lng?: number) => {
     if (!config) return;
-    
     const RESTAURANT_LOCATION = getRestaurantLocation(config);
     const addressToUse = fullAddress || addressData.fullAddress;
     
+    // More lenient validation - only require street address OR city
     if (!addressToUse.trim() || (!addressData.streetAddress && !addressData.city)) {
-      setError(t("Täytä vähintään katuosoite ja kaupunki", "Fill in at least street address and city"));
+      setError(t("Täytä vähintään katuosoite tai kaupunki", "Fill in at least street address or city"));
       return;
     }
 
@@ -118,87 +118,114 @@ export function StructuredAddressInput({
       let coordinates = { lat, lng };
       
       if (!coordinates.lat || !coordinates.lng) {
-        // Geocode the address using Nominatim
-        const response = await fetch(
-          `https://nominatim.openstreetmap.org/search?` +
-          `format=json&q=${encodeURIComponent(addressToUse)}` +
-          `&countrycodes=fi&limit=1&addressdetails=1`,
-          {
-            headers: {
-              'Accept': 'application/json',
-              'User-Agent': 'AntonioRestaurant/1.0'
+        // Try to geocode the address
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/search?` +
+            `format=json&q=${encodeURIComponent(addressToUse)}` +
+            `&countrycodes=fi&limit=1&addressdetails=1`,
+            {
+              headers: {
+                'Accept': 'application/json',
+                'User-Agent': 'AntonioRestaurant/1.0'
+              }
+            }
+          );
+
+          if (response.ok) {
+            const data = await response.json();
+            
+            if (data && data.length > 0) {
+              coordinates = {
+                lat: parseFloat(data[0].lat),
+                lng: parseFloat(data[0].lon)
+              };
             }
           }
-        );
-
-        if (!response.ok) {
-          throw new Error('Geocoding request failed');
+        } catch (geocodeError) {
+          console.warn('Geocoding failed, using default delivery fee:', geocodeError);
+          // Don't throw - allow order to proceed with default fee
         }
+      }
 
-        const data = await response.json();
+      // If we have valid coordinates, calculate actual delivery
+      if (coordinates.lat && coordinates.lng && 
+          !isNaN(coordinates.lat) && !isNaN(coordinates.lng)) {
         
-        if (!data || data.length === 0) {
-          throw new Error('Address not found');
+        if (!isWithinFinland(coordinates.lat, coordinates.lng)) {
+          setError(t("Toimitus vain Suomessa", "Delivery only in Finland"));
+          setIsLoading(false);
+          return;
+        }
+        
+        // Calculate delivery fee using map utils
+        const distance = calculateDistance(
+          RESTAURANT_LOCATION.lat,
+          RESTAURANT_LOCATION.lng,
+          coordinates.lat,
+          coordinates.lng
+        );
+        
+        const fee = calculateFeeFromConfig(distance, config);
+        const zone = getDeliveryZone(distance, config);
+        
+        if (fee === -1) {
+          setError(t("Alue ei ole toimitus-alueella", "Area is outside delivery zone"));
+          setIsLoading(false);
+          return;
         }
 
-        coordinates = {
-          lat: parseFloat(data[0].lat),
-          lng: parseFloat(data[0].lon)
+        const info = {
+          distance: Math.round(distance * 10) / 10,
+          fee: Number(fee.toFixed(2)),
+          zone: zone.description,
+          coordinates: { lat: coordinates.lat, lng: coordinates.lng }
         };
 
-        if (typeof coordinates.lat !== 'number' || typeof coordinates.lng !== 'number' || 
-            isNaN(coordinates.lat) || isNaN(coordinates.lng)) {
-          throw new Error('Invalid coordinates received');
+        setDeliveryInfo(info);
+        onDeliveryCalculated(Number(fee.toFixed(2)), info.distance, addressToUse);
+        
+        // Show map and update with route
+        if (!showMap) {
+          setShowMap(true);
+          setTimeout(() => updateMapWithRoute(info, addressToUse), 1000);
+        } else {
+          updateMapWithRoute(info, addressToUse);
         }
-      }
-
-      // Ensure coordinates are valid numbers
-      if (typeof coordinates.lat !== 'number' || typeof coordinates.lng !== 'number') {
-        throw new Error('Invalid coordinates');
-      }
-
-      if (!isWithinFinland(coordinates.lat, coordinates.lng)) {
-        setError(t("Toimitus vain Suomessa", "Delivery only in Finland"));
-        return;
-      }
-      
-      // Calculate delivery fee using map utils
-      const distance = calculateDistance(
-        RESTAURANT_LOCATION.lat,
-        RESTAURANT_LOCATION.lng,
-        coordinates.lat,
-        coordinates.lng
-      );
-      
-      const fee = calculateDeliveryFee(distance);
-      const zone = getDeliveryZone(distance, config);
-      
-      if (fee === -1) {
-        setError(t("Alue ei ole toimitus-alueella", "Area is outside delivery zone"));
-        return;
-      }
-
-      const info = {
-        distance: Math.round(distance * 10) / 10,
-        fee: Number(fee.toFixed(2)), // Ensure fee is formatted with 2 decimal places
-        zone: zone.description,
-        coordinates: { lat: coordinates.lat, lng: coordinates.lng }
-      };
-
-      setDeliveryInfo(info);
-      onDeliveryCalculated(Number(fee.toFixed(2)), info.distance, addressToUse);
-      
-      // Show map and update with route
-      if (!showMap) {
-        setShowMap(true);
-        setTimeout(() => updateMapWithRoute(info, addressToUse), 1000);
       } else {
-        updateMapWithRoute(info, addressToUse);
+        // If geocoding failed, use minimum delivery fee from config
+        const minFee = config?.delivery?.zones?.[0]?.fee || 3.00;
+        
+        console.log('Using minimum delivery fee (geocoding unavailable):', minFee);
+        
+        const info = {
+          distance: 0,
+          fee: Number(minFee.toFixed(2)),
+          zone: t("Toimitus-alueen vahvistus", "Delivery zone to be confirmed"),
+          coordinates: { lat: 0, lng: 0 }
+        };
+
+        setDeliveryInfo(info);
+        onDeliveryCalculated(Number(minFee.toFixed(2)), 0, addressToUse);
+        
+        // Show warning that fee may be adjusted
+        setError(t(
+          "Osoitetta ei voitu vahvistaa. Toimitusmaksu vahvistetaan tilauksen yhteydessä.",
+          "Address could not be verified. Delivery fee will be confirmed with your order."
+        ));
       }
       
     } catch (error) {
       console.error('Delivery calculation error:', error);
-      setError(t("Virhe laskettaessa toimitusta. Tarkista osoite.", "Error calculating delivery. Check the address."));
+      
+      // Even on error, allow order with minimum fee
+      const minFee = config?.delivery?.zones?.[0]?.fee || 3.00;
+      onDeliveryCalculated(Number(minFee.toFixed(2)), 0, addressToUse);
+      
+      setError(t(
+        "Toimitusmaksu vahvistetaan tilauksen yhteydessä",
+        "Delivery fee will be confirmed with your order"
+      ));
     } finally {
       setIsLoading(false);
     }
@@ -609,13 +636,8 @@ export function StructuredAddressInput({
   const calculateDeliveryFee = (distance: number): number => {
     if (!config) return 3.00;
     
-    if (distance <= 10) {
-      return Number((3.00).toFixed(2));
-    } else if (distance <= 50) {
-      return Number((8.00).toFixed(2));
-    } else {
-      return -1; // Outside delivery area
-    }
+    // Use the config zones from database
+    return calculateFeeFromConfig(distance, config);
   };
 
   return (
@@ -791,18 +813,25 @@ export function StructuredAddressInput({
           <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
             <h4 className="font-semibold mb-2">{t("Toimitusalueet", "Delivery Zones")}</h4>
             <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span>{t("Kuljetusalue 0 - 10km", "Delivery zone 0 - 10km")}</span>
-                <span className="font-medium">{t("3,00 €", "3.00 €")}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>{t("Kuljetusalue yli 10km", "Delivery zone over 10km")}</span>
-                <span className="font-medium">{t("8,00 €", "8.00 €")}</span>
-              </div>
+              {config?.delivery?.zones?.map((zone, index) => {
+                const prevMax = index > 0 ? config.delivery.zones[index - 1].maxDistance : 0;
+                return (
+                  <div key={index} className="flex justify-between">
+                    <span>
+                      {language === 'fi' 
+                        ? `Kuljetusalue ${prevMax} - ${zone.maxDistance}km`
+                        : `Delivery zone ${prevMax} - ${zone.maxDistance}km`}
+                    </span>
+                    <span className="font-medium">{zone.fee.toFixed(2)} €</span>
+                  </div>
+                );
+              })}
             </div>
-            <div className="text-xs text-gray-600 mt-2">
-              {t("* Yli 10km toimituksissa minimitilaus 20,00 €", "* For deliveries over 10km, minimum order €20.00")}
-            </div>
+            {config?.delivery?.zones && config.delivery.zones.length > 1 && (
+              <div className="text-xs text-gray-600 mt-2">
+                {t("* Toimituskulut riippuvat etäisyydestä", "* Delivery fees depend on distance")}
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

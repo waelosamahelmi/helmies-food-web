@@ -22,7 +22,7 @@ interface DeliveryMapProps {
 }
 
 export function DeliveryMap({ onDeliveryCalculated, initialAddress = "" }: DeliveryMapProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { config } = useRestaurant();
   const mapRef = useRef<HTMLDivElement>(null);
   const [address, setAddress] = useState(initialAddress);
@@ -447,18 +447,25 @@ export function DeliveryMap({ onDeliveryCalculated, initialAddress = "" }: Deliv
           <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
             <h4 className="font-semibold mb-2">{t("Toimitusalueet", "Delivery Zones")}</h4>
             <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span>{t("Kuljetusalue 0 - 10km", "Delivery zone 0 - 10km")}</span>
-                <span className="font-medium">{t("3,00 €", "3.00 €")}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>{t("Kuljetusalue yli 10km", "Delivery zone over 10km")}</span>
-                <span className="font-medium">{t("8,00 €", "8.00 €")}</span>
-              </div>
+              {config?.delivery?.zones?.map((zone, index) => {
+                const prevMax = index > 0 ? config.delivery.zones[index - 1].maxDistance : 0;
+                return (
+                  <div key={index} className="flex justify-between">
+                    <span>
+                      {language === 'fi' 
+                        ? `Kuljetusalue ${prevMax} - ${zone.maxDistance}km`
+                        : `Delivery zone ${prevMax} - ${zone.maxDistance}km`}
+                    </span>
+                    <span className="font-medium">{zone.fee.toFixed(2)} €</span>
+                  </div>
+                );
+              })}
             </div>
-            <div className="text-xs text-gray-600 mt-2">
-              {t("* Yli 10km toimituksissa minimitilaus 20,00 €", "* For deliveries over 10km, minimum order €20.00")}
-            </div>
+            {config?.delivery?.zones && config.delivery.zones.length > 1 && (
+              <div className="text-xs text-gray-600 mt-2">
+                {t("* Toimituskulut riippuvat etäisyydestä", "* Delivery fees depend on distance")}
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

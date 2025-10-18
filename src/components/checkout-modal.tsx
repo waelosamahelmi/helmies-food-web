@@ -93,12 +93,17 @@ export function CheckoutModal({ isOpen, onClose, onBack }: CheckoutModalProps) {
 
   const calculateDeliveryFee = () => {
     if (formData.orderType !== "delivery") return 0;
-    // If it's a delivery order but no fee is set, return the minimum fee of 3.00
-    return deliveryInfo?.fee || 3.00;
+    // If it's a delivery order but no fee is set, return the minimum fee from first zone
+    return deliveryInfo?.fee || (config?.delivery?.zones?.[0]?.fee || 3.00);
   };
 
   const deliveryFee = calculateDeliveryFee();
-  const totalAmount = totalPrice + deliveryFee;
+  
+  // Calculate small order fee if total is less than 15 euros
+  const MINIMUM_ORDER = 15.00;
+  const smallOrderFee = totalPrice < MINIMUM_ORDER ? (MINIMUM_ORDER - totalPrice) : 0;
+  
+  const totalAmount = totalPrice + deliveryFee + smallOrderFee;
   const minimumOrderAmount = formData.orderType === "delivery" && 
     deliveryInfo && deliveryInfo.distance > 10 ? 20.00 : 0;
 
@@ -173,6 +178,7 @@ export function CheckoutModal({ isOpen, onClose, onBack }: CheckoutModalProps) {
         ...formData,
         subtotal: totalPrice.toFixed(2),
         deliveryFee: deliveryFee.toFixed(2),
+        smallOrderFee: smallOrderFee.toFixed(2),
         totalAmount: totalAmount.toFixed(2),
         items: items.map(item => ({
           menuItemId: item.menuItem.id,
@@ -238,9 +244,9 @@ export function CheckoutModal({ isOpen, onClose, onBack }: CheckoutModalProps) {
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-semibold">
+            <DialogTitle className="text-xl sm:text-2xl font-semibold">
               {t("Tilauksen tiedot", "Order Details")}
             </DialogTitle>
           </DialogHeader>
@@ -255,21 +261,21 @@ export function CheckoutModal({ isOpen, onClose, onBack }: CheckoutModalProps) {
               value={formData.orderType}
               onValueChange={(value) => handleInputChange("orderType", value)}
             >
-              <div className="grid grid-cols-2 gap-4">
-                <Label className={`flex items-center space-x-3 p-4 border-2 rounded-lg transition-colors ${
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <Label className={`flex items-center space-x-3 p-4 sm:p-3 border-2 rounded-lg transition-colors touch-manipulation ${
                   isDeliveryOpen 
-                    ? "border-gray-200 cursor-pointer hover:border-red-600" 
+                    ? "border-gray-200 cursor-pointer hover:border-red-600 active:bg-red-50" 
                     : "border-gray-100 bg-gray-50 opacity-60 cursor-not-allowed"
                 }`}>
                   <RadioGroupItem 
                     value="delivery" 
-                    className="text-red-600" 
+                    className="text-red-600 w-5 h-5" 
                     disabled={!isDeliveryOpen}
                   />
                   <div className="flex items-center space-x-2">
-                    <Bike className={`w-5 h-5 ${isDeliveryOpen ? "text-red-600" : "text-gray-400"}`} />
+                    <Bike className={`w-6 h-6 sm:w-5 sm:h-5 ${isDeliveryOpen ? "text-red-600" : "text-gray-400"}`} />
                     <div className="flex flex-col">
-                      <span className="font-medium">
+                      <span className="font-medium text-base sm:text-sm">
                         {t("Kotiinkuljetus", "Delivery")}
                       </span>
                       {!isDeliveryOpen && (
@@ -280,20 +286,20 @@ export function CheckoutModal({ isOpen, onClose, onBack }: CheckoutModalProps) {
                     </div>
                   </div>
                 </Label>
-                <Label className={`flex items-center space-x-3 p-4 border-2 rounded-lg transition-colors ${
+                <Label className={`flex items-center space-x-3 p-4 sm:p-3 border-2 rounded-lg transition-colors touch-manipulation ${
                   isPickupOpen 
-                    ? "border-gray-200 cursor-pointer hover:border-red-600" 
+                    ? "border-gray-200 cursor-pointer hover:border-red-600 active:bg-amber-50" 
                     : "border-gray-100 bg-gray-50 opacity-60 cursor-not-allowed"
                 }`}>
                   <RadioGroupItem 
                     value="pickup" 
-                    className="text-red-600" 
+                    className="text-red-600 w-5 h-5" 
                     disabled={!isPickupOpen}
                   />
                   <div className="flex items-center space-x-2">
-                    <ShoppingBag className={`w-5 h-5 ${isPickupOpen ? "text-amber-600" : "text-gray-400"}`} />
+                    <ShoppingBag className={`w-6 h-6 sm:w-5 sm:h-5 ${isPickupOpen ? "text-amber-600" : "text-gray-400"}`} />
                     <div className="flex flex-col">
-                      <span className="font-medium">{t("Nouto", "Pickup")}</span>
+                      <span className="font-medium text-base sm:text-sm">{t("Nouto", "Pickup")}</span>
                       {!isPickupOpen && (
                         <span className="text-xs text-red-500">
                           {t("Suljettu", "Closed")}
@@ -307,9 +313,9 @@ export function CheckoutModal({ isOpen, onClose, onBack }: CheckoutModalProps) {
           </div>
 
           {/* Customer Information */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="customerName">
+              <Label htmlFor="customerName" className="text-base sm:text-sm">
                 {t("Nimi", "Name")} *
               </Label>
               <Input
@@ -317,10 +323,11 @@ export function CheckoutModal({ isOpen, onClose, onBack }: CheckoutModalProps) {
                 required
                 value={formData.customerName}
                 onChange={(e) => handleInputChange("customerName", e.target.value)}
+                className="h-12 sm:h-10 text-base"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="customerPhone">
+              <Label htmlFor="customerPhone" className="text-base sm:text-sm">
                 {t("Puhelinnumero", "Phone Number")} *
               </Label>
               <Input
@@ -329,17 +336,21 @@ export function CheckoutModal({ isOpen, onClose, onBack }: CheckoutModalProps) {
                 required
                 value={formData.customerPhone}
                 onChange={(e) => handleInputChange("customerPhone", e.target.value)}
+                className="h-12 sm:h-10 text-base"
+                inputMode="tel"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="customerEmail">Email</Label>
+            <Label htmlFor="customerEmail" className="text-base sm:text-sm">Email</Label>
             <Input
               id="customerEmail"
               type="email"
               value={formData.customerEmail}
               onChange={(e) => handleInputChange("customerEmail", e.target.value)}
+              className="h-12 sm:h-10 text-base"
+              inputMode="email"
             />
           </div>
 
@@ -380,14 +391,19 @@ export function CheckoutModal({ isOpen, onClose, onBack }: CheckoutModalProps) {
                     {t("Toimitushinnat", "Delivery Pricing")}
                   </h4>
                   <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span>{t("Kuljetusalue 0 - 10km", "Delivery zone 0 - 10km")}</span>
-                      <span className="font-medium">{t("3,00 €", "3.00 €")}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>{t("Kuljetusalue yli 10km", "Delivery zone over 10km")}</span>
-                      <span className="font-medium">{t("8,00 € (Min. 20,00 €)", "8.00 € (Min. 20.00 €)")}</span>
-                    </div>
+                    {config?.delivery?.zones?.map((zone, index) => {
+                      const prevMax = index > 0 ? config.delivery.zones[index - 1].maxDistance : 0;
+                      return (
+                        <div key={index} className="flex justify-between">
+                          <span>
+                            {language === 'fi' 
+                              ? `Kuljetusalue ${prevMax} - ${zone.maxDistance}km`
+                              : `Delivery zone ${prevMax} - ${zone.maxDistance}km`}
+                          </span>
+                          <span className="font-medium">{zone.fee.toFixed(2)} €</span>
+                        </div>
+                      );
+                    })}
                   </div>
                   {minimumOrderAmount > 0 && totalPrice < minimumOrderAmount && (
                     <div className="mt-3 p-2 bg-amber-100 dark:bg-amber-900/20 rounded text-amber-800 dark:text-amber-200 text-sm">
@@ -401,7 +417,7 @@ export function CheckoutModal({ isOpen, onClose, onBack }: CheckoutModalProps) {
 
           {/* Special Instructions */}
           <div className="space-y-2">
-            <Label htmlFor="specialInstructions">
+            <Label htmlFor="specialInstructions" className="text-base sm:text-sm">
               {t("Erityisohjeet", "Special Instructions")}
             </Label>
             <Textarea
@@ -410,12 +426,13 @@ export function CheckoutModal({ isOpen, onClose, onBack }: CheckoutModalProps) {
               placeholder={t("Kerro meille erityistoiveistasi...", "Tell us about your special requests...")}
               value={formData.specialInstructions}
               onChange={(e) => handleInputChange("specialInstructions", e.target.value)}
+              className="text-base resize-none"
             />
           </div>
 
           {/* Payment Method */}
           <div className="space-y-3">
-            <Label className="text-sm font-medium">
+            <Label className="text-base sm:text-sm font-medium">
               {t("Maksutapa", "Payment Method")}
             </Label>
             <RadioGroup
@@ -423,20 +440,19 @@ export function CheckoutModal({ isOpen, onClose, onBack }: CheckoutModalProps) {
               onValueChange={(value) => handleInputChange("paymentMethod", value)}
             >
               <div className="space-y-3">
-                <Label className="flex items-center space-x-3 p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-red-600 transition-colors">
-                  <RadioGroupItem value="cash" className="text-red-600" />
-                  <Banknote className="w-5 h-5 text-green-600" />
-                  <span className="font-medium">{t("Käteinen", "Cash")}</span>
+                <Label className="flex items-center space-x-3 p-4 sm:p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-red-600 active:bg-gray-50 transition-colors touch-manipulation">
+                  <RadioGroupItem value="cash" className="text-red-600 w-5 h-5" />
+                  <Banknote className="w-6 h-6 sm:w-5 sm:h-5 text-green-600" />
+                  <span className="font-medium text-base sm:text-sm">{t("Käteinen", "Cash")}</span>
                 </Label>
-                <Label className="flex items-center space-x-3 p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-red-600 transition-colors">
-                  <RadioGroupItem value="card" className="text-red-600" />
-                  <CreditCard className="w-5 h-5 text-blue-600" />
-                  <span className="font-medium">{t("Kortti", "Card")}</span>
+                <Label className="flex items-center space-x-3 p-4 sm:p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-red-600 active:bg-gray-50 transition-colors touch-manipulation">
+                  <RadioGroupItem value="card" className="text-red-600 w-5 h-5" />
+                  <CreditCard className="w-6 h-6 sm:w-5 sm:h-5 text-blue-600" />
+                  <span className="font-medium text-base sm:text-sm">{t("Kortti", "Card")}</span>
                 </Label>
               </div>
             </RadioGroup>
           </div>
-
           {/* Order Summary */}
           <Card className="bg-gray-50">
             <CardContent className="p-4">
@@ -470,7 +486,21 @@ export function CheckoutModal({ isOpen, onClose, onBack }: CheckoutModalProps) {
                     <span>€{deliveryFee.toFixed(2)}</span>
                   </div>
                 )}
+                {smallOrderFee > 0 && (
+                  <div className="flex justify-between text-sm text-amber-600">
+                    <span>{t("Pientilauslisä", "Small order fee")}</span>
+                    <span>€{smallOrderFee.toFixed(2)}</span>
+                  </div>
+                )}
               </div>
+              {smallOrderFee > 0 && (
+                <div className="mb-3 p-2 bg-amber-50 dark:bg-amber-900/20 rounded text-amber-800 dark:text-amber-200 text-sm">
+                  {t(
+                    `Vähimmäistilaus on ${MINIMUM_ORDER.toFixed(2)}€. Pientilauslisä ${smallOrderFee.toFixed(2)}€ lisätty.`,
+                    `Minimum order is €${MINIMUM_ORDER.toFixed(2)}. Small order fee of €${smallOrderFee.toFixed(2)} added.`
+                  )}
+                </div>
+              )}
               <Separator className="my-3" />
               <div className="flex justify-between items-center text-lg font-semibold">
                 <span>{t("Yhteensä:", "Total:")}</span>
@@ -492,18 +522,18 @@ export function CheckoutModal({ isOpen, onClose, onBack }: CheckoutModalProps) {
           )}
 
           {/* Action Buttons */}
-          <div className="flex space-x-4 pt-4">
+          <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 pt-4">
             <Button
               type="button"
               variant="outline"
               onClick={onBack}
-              className="flex-1"
+              className="w-full sm:flex-1 h-12 sm:h-10 text-base sm:text-sm touch-manipulation"
             >
               {t("Takaisin", "Back")}
             </Button>
             <Button
               type="submit"
-              className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+              className="w-full sm:flex-1 h-12 sm:h-10 text-base sm:text-sm bg-red-600 hover:bg-red-700 active:bg-red-800 text-white touch-manipulation"
               disabled={createOrder.isPending || !isOrderingAvailable}
             >
               {createOrder.isPending 
