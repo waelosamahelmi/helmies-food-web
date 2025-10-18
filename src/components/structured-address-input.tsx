@@ -377,32 +377,28 @@ export function StructuredAddressInput({
     onAddressChange(newAddressData);
   };
 
-  const updateFullAddress = useCallback((data: Partial<AddressData>) => {
-    const updated = { ...addressData, ...data };
-    
-    // Build full address from components
-    let fullAddress = "";
-    if (updated.streetAddress) {
-      fullAddress = updated.streetAddress;
-    }
-    if (updated.postalCode && updated.city) {
-      fullAddress += fullAddress ? `, ${updated.postalCode} ${updated.city}` : `${updated.postalCode} ${updated.city}`;
-    } else if (updated.city) {
-      fullAddress += fullAddress ? `, ${updated.city}` : updated.city;
-    }
-    
-    updated.fullAddress = fullAddress;
-    setAddressData(updated);
-    onAddressChange(updated);
+  const handleStreetAddressChange = (value: string) => {
+    // Update state immediately for responsive typing
+    setAddressData(prev => {
+      const updated = { ...prev, streetAddress: value };
+      
+      // Build full address
+      let fullAddress = value;
+      if (updated.postalCode && updated.city) {
+        fullAddress += `, ${updated.postalCode} ${updated.city}`;
+      } else if (updated.city) {
+        fullAddress += `, ${updated.city}`;
+      }
+      updated.fullAddress = fullAddress;
+      
+      // Call onAddressChange
+      onAddressChange(updated);
+      
+      return updated;
+    });
     
     // Clear error when user types
     if (error) setError("");
-    
-    return updated;
-  }, [addressData, onAddressChange, error]);
-
-  const handleStreetAddressChange = (value: string) => {
-    const updated = updateFullAddress({ streetAddress: value });
     
     // Clear any existing timeout
     if (searchTimeoutRef.current) {
@@ -412,7 +408,17 @@ export function StructuredAddressInput({
     // Debounce address suggestions to avoid excessive API calls
     if (value.length > 3) {
       searchTimeoutRef.current = setTimeout(() => {
-        fetchAddressSuggestions(updated.fullAddress);
+        // Build the query from current state
+        let query = value;
+        setAddressData(current => {
+          if (current.postalCode && current.city) {
+            query = `${value}, ${current.postalCode} ${current.city}`;
+          } else if (current.city) {
+            query = `${value}, ${current.city}`;
+          }
+          return current;
+        });
+        fetchAddressSuggestions(query);
       }, 500); // Wait 500ms after user stops typing
     } else {
       setSuggestions([]);
@@ -423,11 +429,52 @@ export function StructuredAddressInput({
   const handlePostalCodeChange = (value: string) => {
     // Only allow digits and limit to 5 characters (Finnish postal code format)
     const cleaned = value.replace(/\D/g, '').slice(0, 5);
-    updateFullAddress({ postalCode: cleaned });
+    
+    // Update state immediately
+    setAddressData(prev => {
+      const updated = { ...prev, postalCode: cleaned };
+      
+      // Build full address
+      let fullAddress = updated.streetAddress || "";
+      if (cleaned && updated.city) {
+        fullAddress += fullAddress ? `, ${cleaned} ${updated.city}` : `${cleaned} ${updated.city}`;
+      } else if (updated.city) {
+        fullAddress += fullAddress ? `, ${updated.city}` : updated.city;
+      }
+      updated.fullAddress = fullAddress;
+      
+      // Call onAddressChange
+      onAddressChange(updated);
+      
+      return updated;
+    });
+    
+    // Clear error
+    if (error) setError("");
   };
 
   const handleCityChange = (value: string) => {
-    updateFullAddress({ city: value });
+    // Update state immediately
+    setAddressData(prev => {
+      const updated = { ...prev, city: value };
+      
+      // Build full address
+      let fullAddress = updated.streetAddress || "";
+      if (updated.postalCode && value) {
+        fullAddress += fullAddress ? `, ${updated.postalCode} ${value}` : `${updated.postalCode} ${value}`;
+      } else if (value) {
+        fullAddress += fullAddress ? `, ${value}` : value;
+      }
+      updated.fullAddress = fullAddress;
+      
+      // Call onAddressChange
+      onAddressChange(updated);
+      
+      return updated;
+    });
+    
+    // Clear error
+    if (error) setError("");
   };
 
   const fetchAddressSuggestions = async (query: string) => {
