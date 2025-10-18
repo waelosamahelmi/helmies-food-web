@@ -1,22 +1,13 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Textarea } from './ui/textarea';
 import { Phone, Mail, MapPin, Clock } from 'lucide-react';
-import { getFullAddress, getFormattedHours } from '../config/restaurant-config';
+import { getFormattedHours } from '../config/restaurant-config';
 import { useLanguage } from '../lib/language-context';
 import { useRestaurant } from '../lib/restaurant-context';
 
 const ContactSection: React.FC = () => {
   const { language } = useLanguage();
   const { config } = useRestaurant();
-  
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    // Handle form submission here
-    console.log('Contact form submitted');
-  };
 
   if (!config) {
     return (
@@ -66,166 +57,70 @@ const ContactSection: React.FC = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {/* Contact Information */}
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Phone className="w-5 h-5" />
-                  {language === 'fi' ? 'Puhelin' : 'Phone'}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-lg">{config.phone}</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Mail className="w-5 h-5" />
-                  Email
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-lg">{config.email}</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MapPin className="w-5 h-5" />
-                  {language === 'fi' ? 'Osoite' : 'Address'}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-lg">
-                  {config.address.street}<br />
-                  {config.address.postalCode} {config.address.city}
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock className="w-5 h-5" />
-                  {language === 'fi' ? 'Aukioloajat' : 'Hours'}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {groupedHours.map((group, index) => (
-                    <p key={index}>
-                      <span className="font-medium">
-                        {group.days.length === 1 
-                          ? group.days[0]
-                          : group.days.length === 2
-                          ? `${group.days[0]} - ${group.days[group.days.length - 1]}`
-                          : `${group.days[0]} - ${group.days[group.days.length - 1]}`
-                        }:
-                      </span>{' '}
-                      {group.hours}
-                    </p>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Contact Form */}
           <Card>
             <CardHeader>
-              <CardTitle>
-                {language === 'fi' ? 'Lähetä viesti' : 'Send us a Message'}
+              <CardTitle className="flex items-center gap-2">
+                <Phone className="w-5 h-5" />
+                {language === 'fi' ? 'Puhelin' : 'Phone'}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      {language === 'fi' ? 'Etunimi' : 'First Name'}
-                    </label>
-                    <Input
-                      id="firstName"
-                      name="firstName"
-                      type="text"
-                      required
-                      placeholder={language === 'fi' ? 'Etunimesi' : 'Your first name'}
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      {language === 'fi' ? 'Sukunimi' : 'Last Name'}
-                    </label>
-                    <Input
-                      id="lastName"
-                      name="lastName"
-                      type="text"
-                      required
-                      placeholder={language === 'fi' ? 'Sukunimesi' : 'Your last name'}
-                    />
-                  </div>
-                </div>
-                
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Email
-                  </label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    required
-                    placeholder={language === 'fi' ? 'sinun.email@esimerkki.com' : 'your.email@example.com'}
-                  />
-                </div>
-                
-                <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    {language === 'fi' ? 'Puhelin (valinnainen)' : 'Phone (optional)'}
-                  </label>
-                  <Input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    placeholder={language === 'fi' ? '+358 40 123 4567' : '(555) 123-4567'}
-                  />
-                </div>
-                
-                <div>
-                  <label htmlFor="subject" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    {language === 'fi' ? 'Aihe' : 'Subject'}
-                  </label>
-                  <Input
-                    id="subject"
-                    name="subject"
-                    type="text"
-                    required
-                    placeholder={language === 'fi' ? 'Mistä viesti koskee?' : 'What is this regarding?'}
-                  />
-                </div>
-                
-                <div>
-                  <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    {language === 'fi' ? 'Viesti' : 'Message'}
-                  </label>
-                  <Textarea
-                    id="message"
-                    name="message"
-                    required
-                    placeholder={language === 'fi' ? 'Kerro lisää...' : 'Tell us more about your inquiry...'}
-                    className="min-h-[120px]"
-                  />
-                </div>
-                
-                <Button type="submit" className="w-full">
-                  {language === 'fi' ? 'Lähetä viesti' : 'Send Message'}
-                </Button>
-              </form>
+              <p className="text-lg">{config.phone}</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Mail className="w-5 h-5" />
+                Email
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-lg">{config.email}</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MapPin className="w-5 h-5" />
+                {language === 'fi' ? 'Osoite' : 'Address'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-lg">
+                {config.address.street}<br />
+                {config.address.postalCode} {config.address.city}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="w-5 h-5" />
+                {language === 'fi' ? 'Aukioloajat' : 'Hours'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {groupedHours.map((group, index) => (
+                  <p key={index}>
+                    <span className="font-medium">
+                      {group.days.length === 1 
+                        ? group.days[0]
+                        : group.days.length === 2
+                        ? `${group.days[0]} - ${group.days[group.days.length - 1]}`
+                        : `${group.days[0]} - ${group.days[group.days.length - 1]}`
+                      }:
+                    </span>{' '}
+                    {group.hours}
+                  </p>
+                ))}
+              </div>
             </CardContent>
           </Card>
         </div>
