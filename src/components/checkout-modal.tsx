@@ -36,6 +36,7 @@ export function CheckoutModal({ isOpen, onClose, onBack }: CheckoutModalProps) {
   const [isOrderingAvailable, setIsOrderingAvailable] = useState(true);
   const [isPickupOpen, setIsPickupOpen] = useState(true);
   const [isDeliveryOpen, setIsDeliveryOpen] = useState(true);
+  const [isRestaurantBusy, setIsRestaurantBusy] = useState(false);
 
   // Fetch toppings to resolve names
   const { data: allToppings = [] } = useQuery({
@@ -225,9 +226,21 @@ export function CheckoutModal({ isOpen, onClose, onBack }: CheckoutModalProps) {
         setIsOrderingAvailable(isOnlineOrderingAvailable(config));
         setIsPickupOpen(isPickupAvailable(config));
         setIsDeliveryOpen(isDeliveryAvailable(config));
+        setIsRestaurantBusy(config.isBusy || false);
       };
       
       checkAvailability();
+      
+      // Check if restaurant is busy
+      if (config.isBusy) {
+        onClose();
+        toast({
+          title: t("Ravintola on kiireinen", "Restaurant is busy"),
+          description: t("Olemme tällä hetkellä todella kiireisiä. Yritä uudelleen hetken kuluttua.", "We're very busy right now. Please try again in a moment."),
+          variant: "destructive"
+        });
+        return;
+      }
       
       // If not available, close modal
       if (!isOnlineOrderingAvailable(config)) {

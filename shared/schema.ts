@@ -114,6 +114,7 @@ export const categoryToppingGroups = pgTable("category_topping_groups", {
 export const restaurantSettings = pgTable("restaurant_settings", {
   id: serial("id").primaryKey(),
   isOpen: boolean("is_open").default(true),
+  isBusy: boolean("is_busy").default(false),
   openingHours: text("opening_hours").notNull(),
   pickupHours: text("pickup_hours").notNull(),
   deliveryHours: text("delivery_hours").notNull(),

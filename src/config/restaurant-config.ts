@@ -7,6 +7,7 @@
 export interface DatabaseRestaurantSettings {
   id: number;
   is_open: boolean;
+  is_busy?: boolean;
   opening_hours: string; // JSON string
   pickup_hours: string; // JSON string
   delivery_hours: string; // JSON string
@@ -70,6 +71,9 @@ export interface RestaurantConfig {
   facebook?: string;
   instagram?: string;
   website?: string;
+  
+  // Status
+  isBusy?: boolean;
   
   // Business Hours (will be overridden by database)
   hours: {
@@ -254,6 +258,9 @@ export function mergeConfigWithDatabaseSettings(
     if (dbSettings.lunch_buffet_hours && mergedConfig.services.hasLunchBuffet) {
       mergedConfig.services.lunchBuffetHours = convertDatabaseHoursToWeekSchedule(dbSettings.lunch_buffet_hours);
     }
+
+    // Set busy status
+    mergedConfig.isBusy = dbSettings.is_busy || false;
 
     // Note: Special message handling will be done in components that can access the database settings directly
   } catch (error) {
