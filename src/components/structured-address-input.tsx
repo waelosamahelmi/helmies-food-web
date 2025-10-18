@@ -70,6 +70,11 @@ export function StructuredAddressInput({
   const searchTimeoutRef = useRef<NodeJS.Timeout>();
   const inputRef = useRef<HTMLInputElement>(null);
   
+  // Use refs for immediate input values to avoid re-renders
+  const streetRef = useRef<string>("");
+  const postalRef = useRef<string>("");
+  const cityRef = useRef<string>("");
+  
   const [addressData, setAddressData] = useState<AddressData>({
     streetAddress: "",
     postalCode: "",
@@ -98,6 +103,19 @@ export function StructuredAddressInput({
       parseInitialAddress(initialAddress);
     }
   }, [initialAddress]);
+
+  // Update fullAddress and notify parent when any field changes
+  const updateFullAddressFromRefs = () => {
+    const fullAddress = buildFullAddress(streetRef.current, postalRef.current, cityRef.current);
+    const newData = {
+      streetAddress: streetRef.current,
+      postalCode: postalRef.current,
+      city: cityRef.current,
+      fullAddress
+    };
+    setAddressData(newData);
+    onAddressChange(newData);
+  };
 
   // Calculate delivery when all address fields are complete (debounced)
   const handleCalculateDelivery = useCallback(async (fullAddress?: string, lat?: number, lng?: number) => {
@@ -366,6 +384,11 @@ export function StructuredAddressInput({
     
     console.log('Parsed components:', { streetAddress, postalCode, city });
     
+    // Update refs
+    streetRef.current = streetAddress;
+    postalRef.current = postalCode;
+    cityRef.current = city;
+    
     const newAddressData = {
       streetAddress,
       postalCode,
@@ -377,103 +400,89 @@ export function StructuredAddressInput({
     onAddressChange(newAddressData);
   };
 
+  // Build full address helper - pure function, no side effects
+  const buildFullAddress = (street: string, postal: string, city: string): string => {
+    let fullAddress = "";
+    
+    if (street) {
+      fullAddress = street;
+    }
+    
+    if (postal && city) {
+      fullAddress += fullAddress ? `, ${postal} ${city}` : `${postal} ${city}`;
+    } else if (city) {
+      fullAddress += fullAddress ? `, ${city}` : city;
+    }
+    
+    return fullAddress;
+  };
+
+  // Simple, independent field handlers - update refs immediately, debounce parent update
   const handleStreetAddressChange = (value: string) => {
-    // Update state immediately for responsive typing
-    setAddressData(prev => {
-      const updated = { ...prev, streetAddress: value };
-      
-      // Build full address
-      let fullAddress = value;
-      if (updated.postalCode && updated.city) {
-        fullAddress += `, ${updated.postalCode} ${updated.city}`;
-      } else if (updated.city) {
-        fullAddress += `, ${updated.city}`;
-      }
-      updated.fullAddress = fullAddress;
-      
-      // Call onAddressChange
-      onAddressChange(updated);
-      
-      return updated;
+    streetRef.current = value;
+    
+    // Build and update full address immediately for display
+    const fullAddress = buildFullAddress(value, postalRef.current, cityRef.current);
+    setAddressData({
+      streetAddress: value,
+      postalCode: postalRef.current,
+      city: cityRef.current,
+      fullAddress
     });
     
-    // Clear error when user types
-    if (error) setError("");
-    
-    // Clear any existing timeout
+    // Debounce parent notification
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
-    
-    // Debounce address suggestions to avoid excessive API calls
-    if (value.length > 3) {
-      searchTimeoutRef.current = setTimeout(() => {
-        // Build the query from current state
-        let query = value;
-        setAddressData(current => {
-          if (current.postalCode && current.city) {
-            query = `${value}, ${current.postalCode} ${current.city}`;
-          } else if (current.city) {
-            query = `${value}, ${current.city}`;
-          }
-          return current;
-        });
-        fetchAddressSuggestions(query);
-      }, 500); // Wait 500ms after user stops typing
-    } else {
-      setSuggestions([]);
-      setShowSuggestions(false);
-    }
+    searchTimeoutRef.current = setTimeout(() => {
+      updateFullAddressFromRefs();
+    }, 300);
+    if (error) setError("");
   };
 
   const handlePostalCodeChange = (value: string) => {
     // Only allow digits and limit to 5 characters (Finnish postal code format)
     const cleaned = value.replace(/\D/g, '').slice(0, 5);
+    postalRef.current = cleaned;
     
-    // Update state immediately
-    setAddressData(prev => {
-      const updated = { ...prev, postalCode: cleaned };
-      
-      // Build full address
-      let fullAddress = updated.streetAddress || "";
-      if (cleaned && updated.city) {
-        fullAddress += fullAddress ? `, ${cleaned} ${updated.city}` : `${cleaned} ${updated.city}`;
-      } else if (updated.city) {
-        fullAddress += fullAddress ? `, ${updated.city}` : updated.city;
-      }
-      updated.fullAddress = fullAddress;
-      
-      // Call onAddressChange
-      onAddressChange(updated);
-      
-      return updated;
+    // Build and update full address immediately for display
+    const fullAddress = buildFullAddress(streetRef.current, cleaned, cityRef.current);
+    setAddressData({
+      streetAddress: streetRef.current,
+      postalCode: cleaned,
+      city: cityRef.current,
+      fullAddress
     });
     
-    // Clear error
+    // Debounce parent notification
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    searchTimeoutRef.current = setTimeout(() => {
+      updateFullAddressFromRefs();
+    }, 300);
     if (error) setError("");
   };
 
   const handleCityChange = (value: string) => {
-    // Update state immediately
-    setAddressData(prev => {
-      const updated = { ...prev, city: value };
-      
-      // Build full address
-      let fullAddress = updated.streetAddress || "";
-      if (updated.postalCode && value) {
-        fullAddress += fullAddress ? `, ${updated.postalCode} ${value}` : `${updated.postalCode} ${value}`;
-      } else if (value) {
-        fullAddress += fullAddress ? `, ${value}` : value;
-      }
-      updated.fullAddress = fullAddress;
-      
-      // Call onAddressChange
-      onAddressChange(updated);
-      
-      return updated;
+    cityRef.current = value;
+    
+    // Build and update full address immediately for display
+    const fullAddress = buildFullAddress(streetRef.current, postalRef.current, value);
+    setAddressData({
+      streetAddress: streetRef.current,
+      postalCode: postalRef.current,
+      city: value,
+      fullAddress
     });
     
-    // Clear error
+    // Debounce parent notification
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    searchTimeoutRef.current = setTimeout(() => {
+      updateFullAddressFromRefs();
+    }, 300);
     if (error) setError("");
   };
 
@@ -548,6 +557,11 @@ export function StructuredAddressInput({
       postalCode,
       city
     ].filter(Boolean).join(', ');
+    
+    // Update refs
+    streetRef.current = streetAddress;
+    postalRef.current = postalCode;
+    cityRef.current = city;
     
     const newAddressData = {
       streetAddress,
@@ -785,6 +799,26 @@ export function StructuredAddressInput({
             </div>
           </div>
 
+          {/* Full Address Display - This is used for delivery calculation */}
+          {addressData.fullAddress && (
+            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-lg">
+              <div className="flex items-start space-x-2">
+                <MapPin className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <div className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
+                    {t("Täydellinen toimitusosoite:", "Complete delivery address:")}
+                  </div>
+                  <div className="font-semibold text-lg text-gray-900 dark:text-white">
+                    {addressData.fullAddress}
+                  </div>
+                  <div className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                    {t("Toimitusmaksu lasketaan tämän osoitteen perusteella", "Delivery fee is calculated based on this address")}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Action buttons */}
           <div className="flex space-x-2">
             <Button
@@ -821,38 +855,18 @@ export function StructuredAddressInput({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
               <div className="text-center">
                 <div className="text-2xl font-bold text-blue-600">{deliveryInfo.distance} km</div>
-                <div className="text-sm text-gray-600">{t("Etäisyys", "Distance")}</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">{t("Etäisyys", "Distance")}</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-green-600">{deliveryInfo.fee.toFixed(2)}€</div>
-                <div className="text-sm text-gray-600">{t("Toimitusmaksu", "Delivery Fee")}</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">{t("Toimitusmaksu", "Delivery Fee")}</div>
               </div>
               <div className="text-center">
                 <Badge variant="outline" className="text-sm">
                   {deliveryInfo.zone}
                 </Badge>
-                <div className="text-sm text-gray-600 mt-1">{t("Toimitus-alue", "Delivery Zone")}</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">{t("Toimitus-alue", "Delivery Zone")}</div>
               </div>
-            </div>
-          )}
-
-          {/* Address preview */}
-          {addressData.fullAddress && (
-            <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-              <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                {t("Täydellinen osoite:", "Complete address:")}
-              </div>
-              <div className="font-medium text-gray-900 dark:text-white">
-                {addressData.fullAddress}
-              </div>
-              {deliveryInfo && (
-                <div className="flex items-center space-x-2 mt-2">
-                  <Check className="w-4 h-4 text-green-600" />
-                  <span className="text-sm text-green-600">
-                    {t("Toimitus laskettu", "Delivery calculated")}
-                  </span>
-                </div>
-              )}
             </div>
           )}
 
