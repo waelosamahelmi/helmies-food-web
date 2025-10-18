@@ -14,8 +14,6 @@ import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";
 import { Bike, ShoppingBag, CreditCard, Banknote, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { DeliveryMap } from "@/components/delivery-map";
-import { StructuredAddressInput } from "@/components/structured-address-input";
 import { OrderSuccessModal } from "@/components/order-success-modal";
 import { isOnlineOrderingAvailable, isPickupAvailable, isDeliveryAvailable } from "@/lib/business-hours";
 
@@ -54,9 +52,6 @@ export function CheckoutModal({ isOpen, onClose, onBack }: CheckoutModalProps) {
     customerPhone: "",
     customerEmail: "",
     deliveryAddress: "",
-    streetAddress: "",
-    postalCode: "",
-    city: "",
     orderType: "delivery" as "delivery" | "pickup",
     paymentMethod: "cash",
     specialInstructions: "",
@@ -64,31 +59,19 @@ export function CheckoutModal({ isOpen, onClose, onBack }: CheckoutModalProps) {
 
   const [deliveryInfo, setDeliveryInfo] = useState<{
     fee: number;
-    distance: number;
-    address: string;
   } | null>(null);
 
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successOrderNumber, setSuccessOrderNumber] = useState<string>("");
 
-  const handleAddressChange = (addressData: {
-    streetAddress: string;
-    postalCode: string;
-    city: string;
-    fullAddress: string;
-  }) => {
-    setFormData(prev => ({
-      ...prev,
-      streetAddress: addressData.streetAddress,
-      postalCode: addressData.postalCode,
-      city: addressData.city,
-      deliveryAddress: addressData.fullAddress
-    }));
-  };
-
-  const handleDeliveryCalculated = (fee: number, distance: number, address: string) => {
-    setDeliveryInfo({ fee, distance, address });
+  const handleDeliveryAddressChange = (address: string) => {
     setFormData(prev => ({ ...prev, deliveryAddress: address }));
+    
+    // Set default delivery fee from first zone
+    if (address.trim() && !deliveryInfo) {
+      const defaultFee = config?.delivery?.zones?.[0]?.fee || 3.00;
+      setDeliveryInfo({ fee: defaultFee });
+    }
   };
 
   const calculateDeliveryFee = () => {
@@ -104,8 +87,6 @@ export function CheckoutModal({ isOpen, onClose, onBack }: CheckoutModalProps) {
   const smallOrderFee = totalPrice < MINIMUM_ORDER ? (MINIMUM_ORDER - totalPrice) : 0;
   
   const totalAmount = totalPrice + deliveryFee + smallOrderFee;
-  const minimumOrderAmount = formData.orderType === "delivery" && 
-    deliveryInfo && deliveryInfo.distance > 10 ? 20.00 : 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -151,26 +132,14 @@ export function CheckoutModal({ isOpen, onClose, onBack }: CheckoutModalProps) {
 
     // Validate delivery address if order type is delivery
     if (formData.orderType === "delivery") {
-      if (!formData.deliveryAddress || formData.deliveryAddress.trim() === "" || 
-          !formData.streetAddress || formData.streetAddress.trim() === "" ||
-          !formData.city || formData.city.trim() === "") {
+      if (!formData.deliveryAddress || formData.deliveryAddress.trim() === "") {
         toast({
           title: t("Virhe", "Error"),
-          description: t("Täydellinen toimitusosoite on pakollinen kotiinkuljetuksessa", "Complete delivery address is required for delivery orders"),
+          description: t("Toimitusosoite on pakollinen kotiinkuljetuksessa", "Delivery address is required for delivery orders"),
           variant: "destructive",
         });
         return;
       }
-    }
-
-    // Check minimum order amount for long distance delivery
-    if (minimumOrderAmount > 0 && totalPrice < minimumOrderAmount) {
-      toast({
-        title: t("Virhe", "Error"),
-        description: t(`Vähimmäistilaussumma tälle alueelle on ${minimumOrderAmount.toFixed(2)} €`, `Minimum order amount for this area is ${minimumOrderAmount.toFixed(2)} €`),
-        variant: "destructive",
-      });
-      return;
     }
 
     try {
@@ -357,61 +326,44 @@ export function CheckoutModal({ isOpen, onClose, onBack }: CheckoutModalProps) {
           {/* Delivery Address with Structured Input */}
           {formData.orderType === "delivery" && (
             <>
-              <StructuredAddressInput 
-                onAddressChange={handleAddressChange}
-                onDeliveryCalculated={handleDeliveryCalculated}
-                initialAddress={formData.deliveryAddress}
-              />
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="deliveryAddress" className="text-base">
+                    {t("Toimitusosoite", "Delivery Address")} *
+                  </Label>
+                  <Textarea
+                    id="deliveryAddress"
+                    value={formData.deliveryAddress}
+                    onChange={(e) => handleDeliveryAddressChange(e.target.value)}
+                    placeholder={t(
+                      "Katuosoite, postinumero ja kaupunki",
+                      "Street address, postal code and city"
+                    )}
+                    required
+                    className="mt-1 min-h-[80px]"
+                  />
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {t(
+                      "Kirjoita täydellinen osoite (esim. Keskuskatu 1, 20100 Turku)",
+                      "Enter complete address (e.g. Main Street 1, 20100 Turku)"
+                    )}
+                  </p>
+                </div>
+              </div>
 
               {/* Delivery Summary */}
               {deliveryInfo && (
                 <Card className="bg-green-50 dark:bg-green-900/20">
                   <CardContent className="p-4">
-                    <h4 className="font-semibold mb-3 text-green-800 dark:text-green-200">
-                      {t("Toimitus laskettu", "Delivery Calculated")}
+                    <h4 className="font-semibold mb-2 text-green-800 dark:text-green-200">
+                      {t("Toimitusmaksu", "Delivery Fee")}
                     </h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span>{t("Etäisyys:", "Distance:")}</span>
-                        <span className="font-medium">{deliveryInfo.distance} km</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>{t("Toimitusmaksu:", "Delivery fee:")}</span>
-                        <span className="font-medium">{deliveryInfo.fee.toFixed(2)}€</span>
-                      </div>
+                    <div className="text-lg font-medium text-green-900 dark:text-green-100">
+                      {deliveryInfo.fee.toFixed(2)}€
                     </div>
                   </CardContent>
                 </Card>
               )}
-
-              {/* Delivery Pricing Information */}
-              <Card className="bg-blue-50 dark:bg-blue-900/20">
-                <CardContent className="p-4">
-                  <h4 className="font-semibold mb-3 text-blue-800 dark:text-blue-200">
-                    {t("Toimitushinnat", "Delivery Pricing")}
-                  </h4>
-                  <div className="space-y-2 text-sm">
-                    {config?.delivery?.zones?.map((zone, index) => {
-                      const prevMax = index > 0 ? config.delivery.zones[index - 1].maxDistance : 0;
-                      return (
-                        <div key={index} className="flex justify-between">
-                          <span>
-                            {language === 'fi' 
-                              ? `Kuljetusalue ${prevMax} - ${zone.maxDistance}km`
-                              : `Delivery zone ${prevMax} - ${zone.maxDistance}km`}
-                          </span>
-                          <span className="font-medium">{zone.fee.toFixed(2)} €</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  {minimumOrderAmount > 0 && totalPrice < minimumOrderAmount && (
-                    <div className="mt-3 p-2 bg-amber-100 dark:bg-amber-900/20 rounded text-amber-800 dark:text-amber-200 text-sm">
-                      {t(`Vähimmäistilaussumma: ${minimumOrderAmount.toFixed(2)} €`, `Minimum order: ${minimumOrderAmount.toFixed(2)} €`)}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
             </>
           )}
 
