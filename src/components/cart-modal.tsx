@@ -47,33 +47,33 @@ export function CartModal({ isOpen, onClose, onCheckout }: CartModalProps) {
 
         <div className="max-h-96 overflow-y-auto">
           {items.length === 0 ? (
-            <div className="text-center text-gray-500 py-8">
-              <ShoppingCart className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+            <div className="text-center text-gray-500 dark:text-gray-400 py-8">
+              <ShoppingCart className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
               <p>{t("Ostoskorisi on tyhjä", "Your cart is empty")}</p>
             </div>
           ) : (
             <div className="space-y-4">
               {items.map((item) => (
-                <div key={item.id} className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+                <div key={item.id} className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                   <div className="flex-1">
-                    <h4 className="font-medium">
+                    <h4 className="font-medium text-gray-900 dark:text-gray-100">
                       {language === "fi" ? item.menuItem.name : item.menuItem.nameEn}
                     </h4>
-                    <p className="text-gray-600 text-sm">
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">
                       €{parseFloat(item.menuItem.price).toFixed(2)} x {item.quantity}
                     </p>
                     {item.size && (
-                      <p className="text-gray-500 text-xs mt-1">
+                      <p className="text-gray-500 dark:text-gray-400 text-xs mt-1">
                         {t("Koko:", "Size:")} {item.size}
                       </p>
                     )}
                     {item.toppings && item.toppings.length > 0 && (
-                      <p className="text-gray-500 text-xs mt-1">
+                      <p className="text-gray-500 dark:text-gray-400 text-xs mt-1">
                         {t("Lisätäytteet:", "Toppings:")} {item.toppings.map(getToppingName).join(", ")}
                       </p>
                     )}
                     {item.specialInstructions && (
-                      <p className="text-gray-500 text-xs mt-1">
+                      <p className="text-gray-500 dark:text-gray-400 text-xs mt-1">
                         {t("Erityisohjeet:", "Special instructions:")}{" "}
                         {item.specialInstructions}
                       </p>
