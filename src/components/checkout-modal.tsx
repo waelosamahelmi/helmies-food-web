@@ -93,8 +93,8 @@ export function CheckoutModal({ isOpen, onClose, onBack }: CheckoutModalProps) {
 
   const calculateDeliveryFee = () => {
     if (formData.orderType !== "delivery") return 0;
-    // If it's a delivery order but no fee is set, return the minimum fee from first zone
-    return deliveryInfo?.fee || (config?.delivery?.zones?.[0]?.fee || 3.00);
+    // Only return the calculated fee if delivery info exists, otherwise return 0
+    return deliveryInfo?.fee ?? 0;
   };
 
   const deliveryFee = calculateDeliveryFee();
@@ -365,7 +365,7 @@ export function CheckoutModal({ isOpen, onClose, onBack }: CheckoutModalProps) {
 
               {/* Delivery Summary */}
               {deliveryInfo && (
-                <Card className="bg-green-50 dark:bg-green-900/20">
+                <Card className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
                   <CardContent className="p-4">
                     <h4 className="font-semibold mb-3 text-green-800 dark:text-green-200">
                       {t("Toimitus laskettu", "Delivery Calculated")}
@@ -385,7 +385,7 @@ export function CheckoutModal({ isOpen, onClose, onBack }: CheckoutModalProps) {
               )}
 
               {/* Delivery Pricing Information */}
-              <Card className="bg-blue-50 dark:bg-blue-900/20">
+              <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
                 <CardContent className="p-4">
                   <h4 className="font-semibold mb-3 text-blue-800 dark:text-blue-200">
                     {t("Toimitushinnat", "Delivery Pricing")}
@@ -394,7 +394,7 @@ export function CheckoutModal({ isOpen, onClose, onBack }: CheckoutModalProps) {
                     {config?.delivery?.zones?.map((zone, index) => {
                       const prevMax = index > 0 ? config.delivery.zones[index - 1].maxDistance : 0;
                       return (
-                        <div key={index} className="flex justify-between">
+                        <div key={index} className="flex justify-between text-gray-700 dark:text-gray-300">
                           <span>
                             {language === 'fi' 
                               ? `Kuljetusalue ${prevMax} - ${zone.maxDistance}km`
@@ -454,9 +454,9 @@ export function CheckoutModal({ isOpen, onClose, onBack }: CheckoutModalProps) {
             </RadioGroup>
           </div>
           {/* Order Summary */}
-          <Card className="bg-gray-50">
+          <Card className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700">
             <CardContent className="p-4">
-              <h4 className="font-semibold mb-3">
+              <h4 className="font-semibold mb-3 text-gray-900 dark:text-gray-100">
                 {t("Tilauksen yhteenveto", "Order Summary")}
               </h4>
               <div className="space-y-2 mb-4">
@@ -466,11 +466,11 @@ export function CheckoutModal({ isOpen, onClose, onBack }: CheckoutModalProps) {
                   const sizePrice = item.sizePrice || 0;
                   const totalItemPrice = (basePrice + toppingsPrice + sizePrice) * item.quantity;
                   return (
-                    <div key={item.id} className="flex justify-between text-sm">
+                    <div key={item.id} className="flex justify-between text-sm text-gray-700 dark:text-gray-300">
                       <span>
                         {language === "fi" ? item.menuItem.name : item.menuItem.nameEn} x {item.quantity}
                         {(toppingsPrice > 0 || sizePrice > 0) && (
-                          <span className="text-gray-500 text-xs block">
+                          <span className="text-gray-500 dark:text-gray-400 text-xs block">
                             {toppingsPrice > 0 && `${t("+ lisätäytteet", "+ extras")}: €${toppingsPrice.toFixed(2)}`}
                             {sizePrice > 0 && `${t("+ koko", "+ size")}: €${sizePrice.toFixed(2)}`}
                           </span>
@@ -480,14 +480,14 @@ export function CheckoutModal({ isOpen, onClose, onBack }: CheckoutModalProps) {
                     </div>
                   );
                 })}
-                {formData.orderType === "delivery" && (
-                  <div className="flex justify-between text-sm">
+                {formData.orderType === "delivery" && deliveryFee > 0 && (
+                  <div className="flex justify-between text-sm text-gray-700 dark:text-gray-300">
                     <span>{t("Kuljetusmaksu", "Delivery fee")}</span>
                     <span>€{deliveryFee.toFixed(2)}</span>
                   </div>
                 )}
                 {smallOrderFee > 0 && (
-                  <div className="flex justify-between text-sm text-amber-600">
+                  <div className="flex justify-between text-sm text-amber-600 dark:text-amber-400">
                     <span>{t("Pientilauslisä", "Small order fee")}</span>
                     <span>€{smallOrderFee.toFixed(2)}</span>
                   </div>
@@ -502,19 +502,19 @@ export function CheckoutModal({ isOpen, onClose, onBack }: CheckoutModalProps) {
                 </div>
               )}
               <Separator className="my-3" />
-              <div className="flex justify-between items-center text-lg font-semibold">
+              <div className="flex justify-between items-center text-lg font-semibold text-gray-900 dark:text-gray-100">
                 <span>{t("Yhteensä:", "Total:")}</span>
-                <span className="text-red-600">€{totalAmount.toFixed(2)}</span>
+                <span className="text-red-600 dark:text-red-400">€{totalAmount.toFixed(2)}</span>
               </div>
             </CardContent>
           </Card>
 
           {/* Business Hours Alert */}
           {!isOrderingAvailable && (
-            <div className="p-4 bg-red-50 rounded-lg mt-4">
+            <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg mt-4">
               <div className="flex items-center space-x-3">
-                <AlertTriangle className="w-5 h-5 text-red-600" />
-                <p className="text-sm text-red-600">
+                <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                <p className="text-sm text-red-600 dark:text-red-400">
                   {t("Verkkotilaus ei ole käytössä tällä hetkellä.", "Online ordering is not available at the moment.")}
                 </p>
               </div>
