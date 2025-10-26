@@ -1,5 +1,5 @@
 [build]
-  command = "rm -rf node_modules package-lock.json && npm install && npm run build"
+  command = "rm -rf node_modules package-lock.json dist .cache && npm install && npm run build"
   publish = "dist"
 
 [build.environment]
@@ -28,18 +28,26 @@
   status = 200
   force = false
 
-# Cache static assets
+# Cache static assets (but allow updates)
 [[headers]]
   for = "/assets/*"
   [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
+    Cache-Control = "public, max-age=3600, must-revalidate"
+
+# Don't cache index.html - always fetch fresh
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    Pragma = "no-cache"
+    Expires = "0"
 
 # Ensure proper MIME types for JavaScript modules
 [[headers]]
   for = "/*.js"
   [headers.values]
     Content-Type = "application/javascript; charset=utf-8"
-    Cache-Control = "public, max-age=31536000, immutable"
+    Cache-Control = "public, max-age=3600, must-revalidate"
 
 [[headers]]
   for = "/assets/*.js"
