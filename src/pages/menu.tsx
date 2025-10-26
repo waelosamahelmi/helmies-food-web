@@ -55,8 +55,14 @@ export default function Menu() {
   useEffect(() => {
     const checkOrderingStatus = () => {
       if (config) {
+        console.log('🔍 Menu: Checking ordering status', {
+          isBusy: config.isBusy,
+          isOnlineOrderingAvailable: isOnlineOrderingAvailable(config)
+        });
+        
         // Check if restaurant is busy
         if (config.isBusy) {
+          console.log('⚠️ Menu: Restaurant is BUSY - disabling orders');
           setIsOrderingAvailable(false);
           if (!showClosedModal) {
             setShowClosedModal(true);

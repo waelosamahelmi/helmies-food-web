@@ -227,12 +227,18 @@ export function CheckoutModal({ isOpen, onClose, onBack }: CheckoutModalProps) {
         setIsPickupOpen(isPickupAvailable(config));
         setIsDeliveryOpen(isDeliveryAvailable(config));
         setIsRestaurantBusy(config.isBusy || false);
+        
+        console.log('🔍 Checkout: Checking availability', {
+          isBusy: config.isBusy,
+          isOrderingAvailable: isOnlineOrderingAvailable(config)
+        });
       };
       
       checkAvailability();
       
       // Check if restaurant is busy
       if (config.isBusy) {
+        console.log('⚠️ Checkout: Restaurant is BUSY - closing modal');
         onClose();
         toast({
           title: t("Ravintola on kiireinen", "Restaurant is busy"),

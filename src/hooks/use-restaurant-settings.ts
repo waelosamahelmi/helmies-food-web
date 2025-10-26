@@ -120,10 +120,21 @@ export function useRestaurantSettings() {
         ? convertDatabaseHoursToWeekSchedule(dbSettings.lunch_buffet_hours)
         : baseConfig.services.lunchBuffetHours,
     },
+    // Merge busy status from database settings
+    isBusy: dbSettings?.is_busy || false,
     // Merge theme: use database theme from baseConfig (which comes from useRestaurantConfig)
     // The baseConfig already contains the database theme if available
     theme: baseConfig.theme
   } : null;
+
+  // Debug logging
+  if (config && dbSettings) {
+    console.log('🏪 Restaurant Settings:', {
+      isBusy: config.isBusy,
+      dbIsBusy: dbSettings.is_busy,
+      isOpen: dbSettings.is_open
+    });
+  }
 
   return {
     config,

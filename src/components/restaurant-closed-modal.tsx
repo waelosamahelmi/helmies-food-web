@@ -14,6 +14,8 @@ export function RestaurantClosedModal({ isOpen, onClose }: RestaurantClosedModal
   const { t } = useLanguage();
   const { config } = useRestaurantSettings();
   const status = config ? getRestaurantStatus(config) : null;
+  
+  const isBusy = config?.isBusy || false;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -21,7 +23,12 @@ export function RestaurantClosedModal({ isOpen, onClose }: RestaurantClosedModal
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2 text-red-600">
             <Store className="w-5 h-5" />
-            <span>{t("Ravintola suljettu", "Restaurant Closed")}</span>
+            <span>
+              {isBusy 
+                ? t("Ravintola on kiireinen", "Restaurant is Busy")
+                : t("Ravintola suljettu", "Restaurant Closed")
+              }
+            </span>
           </DialogTitle>
         </DialogHeader>
         
@@ -31,17 +38,26 @@ export function RestaurantClosedModal({ isOpen, onClose }: RestaurantClosedModal
               <Clock className="w-8 h-8 text-red-600" />
             </div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              {t("Verkkokauppa ei ole avoinna", "Online ordering is not available")}
+              {isBusy
+                ? t("Olemme tällä hetkellä todella kiireisiä", "We're very busy right now")
+                : t("Verkkokauppa ei ole avoinna", "Online ordering is not available")
+              }
             </h3>
             <p className="text-gray-600 dark:text-gray-400">
-              {t(
-                "Pahoittelemme, mutta verkkokauppa on tällä hetkellä suljettu. Voit tarkistaa aukioloajat alla.",
-                "Sorry, but online ordering is currently closed. You can check our opening hours below."
-              )}
+              {isBusy
+                ? t(
+                    "Pahoittelemme, mutta emme voi ottaa vastaan tilauksia juuri nyt. Ole hyvä ja yritä uudelleen hetken kuluttua.",
+                    "Sorry, but we cannot accept orders right now. Please try again in a few moments."
+                  )
+                : t(
+                    "Pahoittelemme, mutta verkkokauppa on tällä hetkellä suljettu. Voit tarkistaa aukioloajat alla.",
+                    "Sorry, but online ordering is currently closed. You can check our opening hours below."
+                  )
+              }
             </p>
           </div>
 
-          {status?.nextOrdering && (
+          {status?.nextOrdering && !isBusy && (
             <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg">
               <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
                 {t("Seuraava tilausaika", "Next ordering time")}
@@ -52,31 +68,33 @@ export function RestaurantClosedModal({ isOpen, onClose }: RestaurantClosedModal
             </div>
           )}
 
-          <div className="space-y-3">
-            <h4 className="font-medium text-gray-900 dark:text-white">
-              {t("Tilausajat", "Ordering Hours")}
-            </h4>
-            
-            <div className="grid grid-cols-1 gap-3">
-              <div className="flex items-center justify-between py-2 px-3 bg-gray-50 dark:bg-gray-800 rounded">
-                <span className="text-sm text-gray-600 dark:text-gray-400">
-                  {t("Nouto", "Pickup")}
-                </span>
-                <span className="text-sm font-medium text-gray-900 dark:text-white">
-                  10:30 - 21:30
-                </span>
-              </div>
+          {!isBusy && (
+            <div className="space-y-3">
+              <h4 className="font-medium text-gray-900 dark:text-white">
+                {t("Tilausajat", "Ordering Hours")}
+              </h4>
               
-              <div className="flex items-center justify-between py-2 px-3 bg-gray-50 dark:bg-gray-800 rounded">
-                <span className="text-sm text-gray-600 dark:text-gray-400">
-                  {t("Kotiinkuljetus", "Delivery")}
-                </span>
-                <span className="text-sm font-medium text-gray-900 dark:text-white">
-                  10:30 - 21:30
-                </span>
+              <div className="grid grid-cols-1 gap-3">
+                <div className="flex items-center justify-between py-2 px-3 bg-gray-50 dark:bg-gray-800 rounded">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    {t("Nouto", "Pickup")}
+                  </span>
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">
+                    10:30 - 21:30
+                  </span>
+                </div>
+                
+                <div className="flex items-center justify-between py-2 px-3 bg-gray-50 dark:bg-gray-800 rounded">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    {t("Kotiinkuljetus", "Delivery")}
+                  </span>
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">
+                    10:30 - 21:30
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           <div className="border-t pt-4">
             <h4 className="font-medium text-gray-900 dark:text-white mb-3">
