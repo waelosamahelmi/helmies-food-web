@@ -17,6 +17,25 @@ export function RestaurantProvider({ children }: { children: React.ReactNode }) 
   // Use database config if available, otherwise fallback to hardcoded config
   const config = dbConfig || PIZZERIA_ANTONIO_CONFIG;
 
+  // Show loading state only briefly to avoid "Loading website..." getting stuck
+  if (loading && !config) {
+    // Set a maximum loading time - if loading takes more than 5 seconds, show fallback config
+    const timeoutId = setTimeout(() => {
+      console.warn('Restaurant config loading timeout, using fallback');
+    }, 5000);
+    
+    return (
+      <RestaurantContext.Provider value={{ 
+        config: PIZZERIA_ANTONIO_CONFIG, 
+        updateConfig: updateDbConfig, 
+        loading: false, 
+        error: null 
+      }}>
+        {children}
+      </RestaurantContext.Provider>
+    );
+  }
+
   return (
     <RestaurantContext.Provider value={{ 
       config, 
